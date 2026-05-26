@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const UserSchema = mongoose.Schema({
+    flatId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Flat",
+    },
     firstName: {
         type: String,
         required: true,
@@ -17,13 +21,19 @@ const UserSchema = mongoose.Schema({
     password: {
         type: String,
         required: true,
-        minLen: 8
+        minlength: 8
     },
     role: {
         type: String,
         enum: ["tenant", "landlord"],
         default: "tenant"
     },
+    phone: {
+        type: String,
+        minlength: 10,
+        maxlength: 10,
+        required: true
+    }
 });
 
 export const User = mongoose.model("User", UserSchema);

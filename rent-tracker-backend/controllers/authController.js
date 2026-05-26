@@ -5,9 +5,9 @@ import config from "../config/config.js";
 
 export const signup = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, role } = req.body;
+        const { firstName, lastName, email, password, role, phone } = req.body;
 
-        if (!firstName || !lastName || !email || !password || !role) {
+        if (!firstName || !lastName || !email || !password || !role || !phone) {
             return res.status(400).json({ message: "Please fill all the required fields" });
         }
 
@@ -24,7 +24,8 @@ export const signup = async (req, res) => {
             lastName,
             email,
             password: hashPassword,
-            role
+            role,
+            phone
         });
 
         await user.save();

@@ -15,7 +15,7 @@ interface Payment {
   };
 }
 
-const Approvals: React.FC = () => {
+function Approvals() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -196,6 +196,6 @@ const Approvals: React.FC = () => {
       )}
     </div>
   );
-};
+}
 
 export default Approvals;

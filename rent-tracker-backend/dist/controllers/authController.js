@@ -12,6 +12,12 @@ export const signup = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         }
+        if (role === "admin") {
+            const existingAdmin = await User.findOne({ role: "admin" });
+            if (existingAdmin) {
+                return res.status(400).json({ message: "An administrator account already exists. Only one admin is allowed." });
+            }
+        }
         const hashPassword = await bcrypt.hash(password, 10);
         const user = new User({
             firstName,

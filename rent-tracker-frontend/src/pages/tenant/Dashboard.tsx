@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, CreditCard, AlertTriangle, ArrowRight } from 'lucide-react';
 import api from '../../api';
 
@@ -8,18 +9,28 @@ interface TenantDashboardData {
   flatNo?: string;
   flatStatus?: string;
   outstandingDue: number;
+  type?: string;
   lease?: any;
   payments?: any[];
 }
 
-const TenantDashboard: React.FC = () => {
+function TenantDashboard() {
   const [data, setData] = useState<TenantDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
+        const meRes = await api.get('/auth/me');
+        if (meRes.data && meRes.data.user) {
+          if (!meRes.data.user.isVerified) {
+            navigate('/tenant/profile');
+            return;
+          }
+        }
+
         const response = await api.get('/tenant/dashboard');
         if (response.data.success) {
           setData(response.data);
@@ -34,10 +45,10 @@ const TenantDashboard: React.FC = () => {
     };
 
     fetchDashboard();
-  }, []);
+  }, [navigate]);
 
-  if (isLoading) return <div className="text-slate-500">Loading your dashboard...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (isLoading) return <div className="text-slate-500 font-sans p-6">Loading your dashboard...</div>;
+  if (error) return <div className="text-red-500 font-sans p-6">{error}</div>;
 
   if (!data?.flatAssigned) {
     return (
@@ -53,23 +64,29 @@ const TenantDashboard: React.FC = () => {
 
   const statCards = [
     {
-      title: 'Outstanding Balance',
+      title: 'Current Flat',
+      value: data.flatNo ? `Unit ${data.flatNo}` : 'Not Assigned',
+      icon: Home,
+      color: 'bg-blue-100 text-blue-600',
+      subtitle: `Status: ${data.flatStatus || 'N/A'}`
+    },
+    {
+      title: 'Monthly Rent',
+      value: data.lease?.monthlyRent ? `₹${data.lease.monthlyRent.toLocaleString()}` : '₹0',
+      icon: CreditCard,
+      color: 'bg-indigo-100 text-indigo-600',
+    },
+    {
+      title: 'Pending Dues',
       value: `₹${data.outstandingDue?.toLocaleString() || 0}`,
       icon: AlertTriangle,
       color: data.outstandingDue > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600',
     },
     {
-      title: 'Current Flat',
-      value: `Unit ${data.flatNo}`,
-      icon: Home,
-      color: 'bg-blue-100 text-blue-600',
-      subtitle: `Status: ${data.flatStatus}`
-    },
-    {
-      title: 'Monthly Rent',
-      value: `₹${data.lease?.monthlyRent?.toLocaleString() || 0}`,
-      icon: CreditCard,
-      color: 'bg-indigo-100 text-indigo-600',
+      title: 'Lease Status',
+      value: data.lease?.status ? data.lease.status.toUpperCase() : 'INACTIVE',
+      icon: ArrowRight,
+      color: data.lease?.status === 'active' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600',
     }
   ];
 
@@ -80,11 +97,11 @@ const TenantDashboard: React.FC = () => {
         <p className="text-sm text-slate-500 mt-1">Here is the summary of your tenancy.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-500">{stat.title}</p>
@@ -93,7 +110,7 @@ const TenantDashboard: React.FC = () => {
                     <p className="text-xs text-slate-400 mt-1">{stat.subtitle}</p>
                   )}
                 </div>
-                <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${stat.color}`}>
+                <div className={`h-12 w-12 rounded-lg flex items-center justify-center flex-shrink-0 ${stat.color}`}>
                   <Icon className="h-6 w-6" />
                 </div>
               </div>
@@ -165,6 +182,6 @@ const TenantDashboard: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default TenantDashboard;

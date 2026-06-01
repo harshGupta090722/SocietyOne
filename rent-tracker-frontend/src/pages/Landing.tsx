@@ -14,7 +14,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-const Landing: React.FC = () => {
+function Landing() {
   const navigate = useNavigate();
 
   return (
@@ -349,11 +349,11 @@ const Landing: React.FC = () => {
               <div className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-500">On-Time Approvals</div>
             </div>
             <div>
-              <div className="text-3xl sm:text-4xl font-extrabold text-blue-600 mb-1">10,000+</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-blue-600 mb-1">500+</div>
               <div className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-500">Active Leases</div>
             </div>
             <div>
-              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-1">₹12M+</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-1">₹1Cr+</div>
               <div className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-500">Rents Collected</div>
             </div>
             <div>
@@ -381,7 +381,7 @@ const Landing: React.FC = () => {
               to="/signup"
               className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl transition-all duration-150 active:scale-[0.99] text-base"
             >
-              Start Free Trial
+             Join Now!
             </Link>
             <Link
               to="/login"
@@ -407,6 +407,6 @@ const Landing: React.FC = () => {
       </footer>
     </div>
   );
-};
+}
 
 export default Landing;

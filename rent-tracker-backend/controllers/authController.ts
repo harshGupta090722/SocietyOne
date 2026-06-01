@@ -18,6 +18,13 @@ export const signup = async (req: Request, res: Response): Promise<any> => {
             return res.status(400).json({ message: "User already exists" });
         }
 
+        if (role === "admin") {
+            const existingAdmin = await User.findOne({ role: "admin" });
+            if (existingAdmin) {
+                return res.status(400).json({ message: "An administrator account already exists. Only one admin is allowed." });
+            }
+        }
+
         const hashPassword = await bcrypt.hash(password, 10);
 
         const user = new User({
@@ -96,6 +103,20 @@ export const logout = async (req: Request, res: Response): Promise<any> => {
         return res.status(200).json({ message: "User logged out successfully" });
     } catch (error) {
         console.error("Error in logout controller:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getMe = async (req: Request, res: Response): Promise<any> => {
+    try {
+        const user = await User.findById(req.userId).select("-password");
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({ user });
+    } catch (error) {
+        console.error("Error in getMe controller:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };

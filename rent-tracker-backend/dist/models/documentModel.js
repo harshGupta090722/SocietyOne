@@ -3,25 +3,14 @@ const documentSchema = new mongoose.Schema({
     leaseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Lease",
-        required: true
+        required: true,
+        unique: true
     },
     rentAgreement: {
         type: String,
         required: true
     },
-    tenantIdProof: {
-        type: String,
-        required: true
-    },
-    ownerIdProof: {
-        type: String,
-        required: true
-    },
     policeVerification: {
-        type: String,
-        required: true
-    },
-    ownershipProof: {
         type: String,
         required: true
     }

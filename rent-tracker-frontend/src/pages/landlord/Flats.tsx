@@ -10,7 +10,7 @@ interface Flat {
   tenantName?: string;
 }
 
-const Flats: React.FC = () => {
+function Flats() {
   const [flats, setFlats] = useState<Flat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -117,6 +117,6 @@ const Flats: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Flats;

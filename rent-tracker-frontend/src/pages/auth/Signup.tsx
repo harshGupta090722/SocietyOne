@@ -3,14 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Building, Lock, Mail, User, Phone, AlertCircle } from 'lucide-react';
 import api from '../../api';
 
-const Signup: React.FC = () => {
+function Signup() {
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
     phone: '',
-    role: 'tenant' as 'tenant' | 'landlord'
+    role: 'tenant' as 'tenant' | 'landlord' | 'admin'
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -57,26 +58,36 @@ const Signup: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Role Selection */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-3 gap-2 mb-4">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: 'tenant' })}
-                className={`py-2 px-4 text-sm font-medium rounded-md border ${formData.role === 'tenant'
-                    ? 'bg-[#f0fdf4] border-[#86efac] text-[#166534]'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${formData.role === 'tenant'
+                  ? 'bg-[#f0fdf4] border-[#86efac] text-[#166534]'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
-                I am a Tenant
+                Tenant
               </button>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: 'landlord' })}
-                className={`py-2 px-4 text-sm font-medium rounded-md border ${formData.role === 'landlord'
-                    ? 'bg-[#eff6ff] border-[#93c5fd] text-[#1e40af]'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${formData.role === 'landlord'
+                  ? 'bg-[#eff6ff] border-[#93c5fd] text-[#1e40af]'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
-                I am a Landlord
+                Landlord
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, role: 'admin' })}
+                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${formData.role === 'admin'
+                  ? 'bg-[#faf5ff] border-[#d8b4fe] text-[#6b21a8]'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+              >
+                Admin
               </button>
             </div>
 
@@ -195,6 +206,6 @@ const Signup: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Signup;

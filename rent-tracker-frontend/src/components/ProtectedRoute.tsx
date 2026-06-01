@@ -4,10 +4,10 @@ import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRole?: 'landlord' | 'tenant';
+  allowedRole?: 'landlord' | 'tenant' | 'admin';
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRole }) => {
+function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, role } = useAuth();
   const location = useLocation();
 
@@ -29,6 +29,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRole }
   }
 
   return <>{children}</>;
-};
+}
 
 export default ProtectedRoute;

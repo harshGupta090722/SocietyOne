@@ -1,0 +1,29 @@
+import express from "express";
+
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { adminMiddleware } from "../middleware/roleMiddleware.js";
+
+import {
+    getDashboard,
+    getAllFlats,
+    getDocumentVerifications,
+    handleDocumentVerification,
+    getAllLeases,
+    getAllDocuments,
+    getProfile,
+} from "../controllers/adminController.js";
+
+const adminRouter = express.Router();
+
+adminRouter.use(authMiddleware as any, adminMiddleware as any);
+
+
+adminRouter.get("/dashboard", getDashboard);
+adminRouter.get("/flats", getAllFlats);
+adminRouter.get("/document-verifications", getDocumentVerifications);
+adminRouter.patch("/document-verifications/:id", handleDocumentVerification);
+adminRouter.get("/leases", getAllLeases);
+adminRouter.get("/documents", getAllDocuments);
+adminRouter.get("/profile", getProfile);
+
+export default adminRouter;

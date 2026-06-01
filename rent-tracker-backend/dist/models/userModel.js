@@ -1,9 +1,5 @@
 import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema({
-    flatId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Flat",
-    },
     firstName: {
         type: String,
         required: true,
@@ -24,7 +20,7 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["tenant", "landlord"],
+        enum: ["tenant", "landlord", "admin"],
         default: "tenant"
     },
     phone: {
@@ -32,6 +28,12 @@ const UserSchema = new mongoose.Schema({
         minlength: 10,
         maxlength: 10,
         required: true
+    },
+    isVerified: {
+        type: Boolean,
+        default: function () {
+            return this.role === "admin";
+        }
     }
 });
 export const User = mongoose.model("User", UserSchema);

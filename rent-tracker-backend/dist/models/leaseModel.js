@@ -5,12 +5,12 @@ const leaseSchema = new mongoose.Schema({
         ref: "Flat",
         required: true
     },
-    tenantId: {
+    landlordId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
-    landlordId: {
+    tenantId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true

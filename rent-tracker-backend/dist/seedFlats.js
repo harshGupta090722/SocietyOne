@@ -13,14 +13,16 @@ const flats = [];
 for (let i = 1; i <= 120; i++) {
     flats.push({
         flatNo: `A${String(i).padStart(3, "0")}`,
-        status: "vacant",
+        status: "unassigned",
+        isApproved: "notApproved",
     });
 }
 // push flats of B-block
 for (let i = 1; i <= 380; i++) {
     flats.push({
         flatNo: `B${String(i).padStart(3, "0")}`,
-        status: "vacant",
+        status: "unassigned",
+        isApproved: "notApproved",
     });
 }
 try {

@@ -3,9 +3,11 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IFlat extends Document {
     flatNo: string;
     ownerId?: mongoose.Types.ObjectId | null;
-    TenantId?: mongoose.Types.ObjectId | null;
-    LeaseId?: mongoose.Types.ObjectId | null;
-    status: "vacant" | "occupied";
+    leaseId?: mongoose.Types.ObjectId | null;
+    monthlyRent?: string;
+    securityDeposit?: string;
+    status: "unassigned" | "vacant" | "occupied";
+    isApproved: "approved" | "pending" | "notApproved";
 }
 
 const flatSchema: Schema = new mongoose.Schema({
@@ -19,20 +21,26 @@ const flatSchema: Schema = new mongoose.Schema({
         ref: "User",
         default: null
     },
-    TenantId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: null
-    },
-    LeaseId: {
+    leaseId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Lease",
         default: null
     },
+    monthlyRent: {
+        type: String
+    },
+    securityDeposit: {
+        type: String
+    },
     status: {
         type: String,
-        enum: ["vacant", "occupied"],
-        default: "vacant"
+        enum: ["unassigned", "vacant", "occupied"],
+        default: "unassigned"
+    },
+    isApproved: {
+        type: String,
+        enum: ["approved", "pending", "notApproved"],
+        default: "notApproved"
     }
 });
 

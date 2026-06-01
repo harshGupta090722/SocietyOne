@@ -11,7 +11,8 @@ export const getDashboard = async (req, res) => {
             return res.status(404).json({ success: false, message: "Tenant not found" });
         }
         const tenantName = `${tenant.firstName} ${tenant.lastName}`;
-        if (!tenant.flatId) {
+        const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
+        if (!activeLease) {
             return res.status(200).json({
                 success: true,
                 message: "No flat assigned currently",
@@ -19,31 +20,26 @@ export const getDashboard = async (req, res) => {
                 flatAssigned: false
             });
         }
-        const flat = await Flat.findById(tenant.flatId);
+        const flat = await Flat.findById(activeLease.flatId);
         if (!flat) {
             return res.status(404).json({ success: false, message: "Assigned flat not found in database" });
         }
         const flatNo = flat.flatNo;
         const status = flat.status;
-        let leaseDetails = null;
-        let documentDetails = null;
-        let payments = [];
+        let leaseDetails = activeLease;
+        let documentDetails = await Document.findOne({ leaseId: activeLease._id });
+        let payments = await Payment.find({ leaseId: activeLease._id }).sort({ paymentDate: -1 });
         let outstandingDue = 0;
-        if (flat.LeaseId) {
-            leaseDetails = await Lease.findById(flat.LeaseId);
-            documentDetails = await Document.findOne({ leaseId: flat.LeaseId });
-            payments = await Payment.find({ leaseId: flat.LeaseId }).sort({ paymentDate: -1 });
-            if (leaseDetails) {
-                // Auto-calculate outstanding rent dues dynamically
-                const start = new Date(leaseDetails.startDate);
-                const now = new Date();
-                const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1;
-                const totalExpectedRent = Math.max(0, months * leaseDetails.monthlyRent);
-                const totalPaidApproved = payments
-                    .filter(p => p.status === "approved")
-                    .reduce((sum, p) => sum + p.amount, 0);
-                outstandingDue = totalExpectedRent - totalPaidApproved;
-            }
+        if (leaseDetails) {
+            // Auto-calculate outstanding rent dues dynamically
+            const start = new Date(leaseDetails.startDate);
+            const now = new Date();
+            const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1;
+            const totalExpectedRent = Math.max(0, months * leaseDetails.monthlyRent);
+            const totalPaidApproved = payments
+                .filter(p => p.status === "approved")
+                .reduce((sum, p) => sum + p.amount, 0);
+            outstandingDue = totalExpectedRent - totalPaidApproved;
         }
         return res.status(200).json({
             success: true,
@@ -65,17 +61,18 @@ export const getDashboard = async (req, res) => {
 export const makePayment = async (req, res) => {
     try {
         const tenant = await User.findById(req.userId);
-        if (!tenant || !tenant.flatId) {
-            return res.status(400).json({
-                success: false,
-                message: "No active flat assigned. Please contact the landlord."
-            });
-        }
-        const flat = await Flat.findById(tenant.flatId);
-        if (!flat || !flat.LeaseId) {
+        const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
+        if (!activeLease) {
             return res.status(400).json({
                 success: false,
                 message: "No active lease found. Please contact the landlord."
+            });
+        }
+        const flat = await Flat.findById(activeLease.flatId);
+        if (!flat) {
+            return res.status(400).json({
+                success: false,
+                message: "No active flat assigned. Please contact the landlord."
             });
         }
         const { amount, screenshotURL } = req.body;
@@ -89,7 +86,7 @@ export const makePayment = async (req, res) => {
         const paymentId = `PAY-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
         const payment = new Payment({
             paymentId,
-            leaseId: flat.LeaseId,
+            leaseId: activeLease._id,
             tenantId: req.userId,
             amount: Number(amount),
             screenshotURL,
@@ -110,14 +107,11 @@ export const makePayment = async (req, res) => {
 export const viewPayments = async (req, res) => {
     try {
         const tenant = await User.findById(req.userId);
-        if (!tenant || !tenant.flatId) {
+        const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
+        if (!activeLease) {
             return res.status(200).json({ success: true, data: [] });
         }
-        const flat = await Flat.findById(tenant.flatId);
-        if (!flat || !flat.LeaseId) {
-            return res.status(200).json({ success: true, data: [] });
-        }
-        const payments = await Payment.find({ leaseId: flat.LeaseId }).sort({ paymentDate: -1 });
+        const payments = await Payment.find({ leaseId: activeLease._id }).sort({ paymentDate: -1 });
         return res.status(200).json({ success: true, data: payments });
     }
     catch (error) {

@@ -4,10 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import { Building, Lock, Mail, AlertCircle } from 'lucide-react';
 import api from '../../api';
 
-const Login: React.FC = () => {
+function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'landlord' | 'tenant'>('tenant');
+  const [role, setRole] = useState<'landlord' | 'tenant' | 'admin'>('tenant');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,8 +24,13 @@ const Login: React.FC = () => {
 
       if (response.data && response.data.token) {
         // the backend login returns token and user data
-        // For testing we will assume it returns { token, user: { _id } }
-        login(response.data.token, role, response.data.user?._id || 'mock-id');
+        // For testing we will assume it returns { token, user: { _id, firstName } }
+        login(
+          response.data.token, 
+          role, 
+          response.data.user?._id || 'mock-id',
+          response.data.user?.firstName
+        );
         navigate(`/${role}/dashboard`);
       }
     } catch (err: any) {
@@ -58,11 +63,11 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Role Selection */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-3 gap-2 mb-6">
               <button
                 type="button"
                 onClick={() => setRole('tenant')}
-                className={`py-2 px-4 text-sm font-medium rounded-md border ${role === 'tenant'
+                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${role === 'tenant'
                   ? 'bg-[#f0fdf4] border-[#86efac] text-[#166534]'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
@@ -72,12 +77,22 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setRole('landlord')}
-                className={`py-2 px-4 text-sm font-medium rounded-md border ${role === 'landlord'
+                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${role === 'landlord'
                   ? 'bg-[#eff6ff] border-[#93c5fd] text-[#1e40af]'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
                 Landlord
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('admin')}
+                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${role === 'admin'
+                  ? 'bg-[#faf5ff] border-[#d8b4fe] text-[#6b21a8]'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+              >
+                Admin
               </button>
             </div>
 
@@ -159,6 +174,6 @@ const Login: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Login;

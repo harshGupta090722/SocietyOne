@@ -14,7 +14,8 @@ await mongoose.connect(mongoUrl);
 
 interface FlatSeedInput {
     flatNo: string;
-    status: "vacant" | "occupied";
+    status: "unassigned" | "vacant" | "occupied";
+    isApproved: "approved" | "pending" | "notApproved";
 }
 
 const flats: FlatSeedInput[] = [];
@@ -23,7 +24,8 @@ const flats: FlatSeedInput[] = [];
 for (let i = 1; i <= 120; i++) {
     flats.push({
         flatNo: `A${String(i).padStart(3, "0")}`,
-        status: "vacant",
+        status: "unassigned",
+        isApproved: "notApproved",
     });
 }
 
@@ -31,7 +33,8 @@ for (let i = 1; i <= 120; i++) {
 for (let i = 1; i <= 380; i++) {
     flats.push({
         flatNo: `B${String(i).padStart(3, "0")}`,
-        status: "vacant",
+        status: "unassigned",
+        isApproved: "notApproved",
     });
 }
 

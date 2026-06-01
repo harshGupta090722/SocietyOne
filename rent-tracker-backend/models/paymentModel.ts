@@ -9,8 +9,6 @@ export interface IPayment extends Document {
     paymentDate: Date;
     screenshotURL: string;
     status: "pending" | "approved" | "rejected";
-    createdAt?: Date;
-    updatedAt?: Date;
 }
 
 const paymentSchema: Schema = new mongoose.Schema({

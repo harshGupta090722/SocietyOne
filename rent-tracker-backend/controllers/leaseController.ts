@@ -28,7 +28,7 @@ export const createLease = async (req: Request, res: Response): Promise<any> => 
         await Flat.findByIdAndUpdate(flatId, {
             status: "occupied",
             TenantId: tenantId,
-            LeaseId: lease._id,
+            leaseId: lease._id,
             ownerId: landlordId
         });
 
@@ -55,11 +55,11 @@ export const getLeaseDetails = async (req: Request, res: Response): Promise<any>
             return res.status(404).json({ message: "Flat not found" });
         }
 
-        if (!flat.LeaseId) {
+        if (!flat.leaseId) {
             return res.status(404).json({ message: "No active lease found for this flat" });
         }
 
-        const lease = await Lease.findById(flat.LeaseId);
+        const lease = await Lease.findById(flat.leaseId);
         return res.status(200).json({ lease });
     } catch (error) {
         console.error("Error in getLeaseDetails:", error);

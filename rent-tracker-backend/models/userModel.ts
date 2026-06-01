@@ -1,20 +1,16 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IUser extends Document {
-    flatId?: mongoose.Types.ObjectId;
     firstName: string;
     lastName: string;
     email: string;
     password: string;
-    role: "tenant" | "landlord";
+    role: "tenant" | "landlord" | "admin";
     phone: string;
+    isVerified: boolean;
 }
 
 const UserSchema: Schema = new mongoose.Schema({
-    flatId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Flat",
-    },
     firstName: {
         type: String,
         required: true,
@@ -35,7 +31,7 @@ const UserSchema: Schema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["tenant", "landlord"],
+        enum: ["tenant", "landlord", "admin"],
         default: "tenant"
     },
     phone: {
@@ -43,6 +39,12 @@ const UserSchema: Schema = new mongoose.Schema({
         minlength: 10,
         maxlength: 10,
         required: true
+    },
+    isVerified: {
+        type: Boolean,
+        default: function (): boolean {
+            return this.role === "admin";
+        }
     }
 });
 

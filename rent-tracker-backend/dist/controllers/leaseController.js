@@ -22,7 +22,7 @@ export const createLease = async (req, res) => {
         await Flat.findByIdAndUpdate(flatId, {
             status: "occupied",
             TenantId: tenantId,
-            LeaseId: lease._id,
+            leaseId: lease._id,
             ownerId: landlordId
         });
         // 3. Link the flat to the Tenant user
@@ -44,10 +44,10 @@ export const getLeaseDetails = async (req, res) => {
         if (!flat) {
             return res.status(404).json({ message: "Flat not found" });
         }
-        if (!flat.LeaseId) {
+        if (!flat.leaseId) {
             return res.status(404).json({ message: "No active lease found for this flat" });
         }
-        const lease = await Lease.findById(flat.LeaseId);
+        const lease = await Lease.findById(flat.leaseId);
         return res.status(200).json({ lease });
     }
     catch (error) {

@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { Lease } from "../models/leaseModel.js";
 import { Payment } from "../models/paymentModel.js";
 import { Flat } from "../models/flatModel.js";
+import { User } from "../models/userModel.js";
+import { Verification } from "../models/verificaionModel.js";
 
 export const getFinances = async (req: Request, res: Response): Promise<any> => {
     let totalRent = 0;
@@ -10,7 +12,7 @@ export const getFinances = async (req: Request, res: Response): Promise<any> => 
     try {
         // Since landlordId is not in the Lease model, fetch flats owned by landlord first
         const landlordFlats = await Flat.find({ ownerId: req.userId });
-        const leaseIds = landlordFlats.map(f => f.LeaseId).filter(id => id != null);
+        const leaseIds = landlordFlats.map(f => f.leaseId).filter(id => id != null);
 
         const leases = await Lease.find({ _id: { $in: leaseIds } });
 
@@ -29,9 +31,9 @@ export const getFinances = async (req: Request, res: Response): Promise<any> => 
 export const viewLeases = async (req: Request, res: Response): Promise<any> => {
     try {
         const landlordFlats = await Flat.find({ ownerId: req.userId });
-        const leaseIds = landlordFlats.map(f => f.LeaseId).filter(id => id != null);
+        const leaseIds = landlordFlats.map(f => f.leaseId).filter(id => id != null);
 
-        const leases = await Lease.find({ _id: { $in: leaseIds } }).populate("flatId");
+        const leases = await Lease.find({ _id: { $in: leaseIds } }).populate("flatId").populate("tenantId");
         return res.status(200).json({ leases });
     } catch (error) {
         console.error("Error in viewLeases:", error);
@@ -42,14 +44,85 @@ export const viewLeases = async (req: Request, res: Response): Promise<any> => {
 export const viewPayments = async (req: Request, res: Response): Promise<any> => {
     try {
         const landlordFlats = await Flat.find({ ownerId: req.userId });
-        const leaseIds = landlordFlats.map(f => f.LeaseId).filter(id => id != null);
+        const flatIds = landlordFlats.map(f => f._id);
+        const landlordLeases = await Lease.find({ flatId: { $in: flatIds } });
+        const leaseIds = landlordLeases.map(l => l._id);
 
-        const payments = await Payment.find({ leaseId: { $in: leaseIds } }).populate("tenantId");
+        const payments = await Payment.find({ leaseId: { $in: leaseIds } })
+            .populate("tenantId", "firstName lastName email phone")
+            .populate({
+                path: "leaseId",
+                populate: {
+                    path: "flatId",
+                    select: "flatNo status isApproved monthlyRent securityDeposit"
+                }
+            })
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({ payments });
     } catch (error) {
         console.error("Error in viewPayments:", error);
         return res.status(500).json({ message: "Error fetching payments" });
+    }
+};
+
+export const addProperty = async (req: Request, res: Response): Promise<any> => {
+    const { flatNo, monthlyRent, securityDeposit } = req.body;
+    try {
+        const flat = await Flat.findOne({ flatNo: flatNo });
+
+        if (!flat) {
+            return res.status(404).json({ message: `Flat ${flatNo} not found in the society database.` });
+        }
+
+        // If flat is already owned by someone else and approved
+        if (flat.ownerId && flat.isApproved === 'approved' && flat.ownerId.toString() !== req.userId) {
+            return res.status(400).json({ message: `Flat ${flatNo} is already registered by another landlord.` });
+        }
+
+        // If flat is pending approval for someone else
+        if (flat.ownerId && flat.isApproved === 'pending' && flat.ownerId.toString() !== req.userId) {
+            return res.status(400).json({ message: `Flat ${flatNo} registration is pending approval for another landlord.` });
+        }
+
+        let fileUrl = "";
+        if (req.file) {
+            fileUrl = `/uploads/${req.file.filename}`;
+        } else if (req.body.documentUrl) {
+            fileUrl = req.body.documentUrl;
+        }
+
+        if (!fileUrl) {
+            return res.status(400).json({ message: "Ownership proof document is required." });
+        }
+
+        flat.ownerId = req.userId as any;
+        flat.leaseId = null;
+        flat.monthlyRent = monthlyRent;
+        flat.securityDeposit = securityDeposit;
+        flat.status = "vacant";
+        flat.isApproved = "pending";
+
+        await flat.save();
+
+        // Create an ownership verification request
+        const verification = new Verification({
+            userId: req.userId,
+            flatId: flat._id,
+            idProofUrl: fileUrl,
+            type: "ownership",
+            status: "pending"
+        });
+        await verification.save();
+
+        return res.status(200).json({
+            message: "Property registration submitted successfully! Awaiting administrator approval.",
+            flat,
+            verification
+        });
+    } catch (error: any) {
+        console.log("Error in addProperty landlord Controller.", error);
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -63,6 +136,18 @@ export const updatePaymentStatus = async (req: Request, res: Response): Promise<
             { status: status },
             { new: true }
         );
+
+        if (payment && status === "approved") {
+            const lease = await Lease.findById(payment.leaseId);
+            if (lease) {
+                const flat = await Flat.findById(lease.flatId);
+                if (flat) {
+                    flat.status = "occupied";
+                    flat.leaseId = lease._id as any;
+                    await flat.save();
+                }
+            }
+        }
 
         return res.status(200).json({ message: "Payment status updated successfully", payment });
     } catch (error) {
@@ -89,5 +174,135 @@ export const uploadDocuments = async (req: Request, res: Response): Promise<any>
         return res.status(500).json({
             message: error.message
         });
+    }
+};
+
+export const getProperties = async (req: Request, res: Response): Promise<any> => {
+    try {
+        const flats = await Flat.find({ ownerId: req.userId }).populate({
+            path: "leaseId",
+            populate: {
+                path: "tenantId",
+                select: "firstName lastName email phone"
+            }
+        });
+        return res.status(200).json({ message: "Properties fetched successfully", flats });
+    } catch (error: any) {
+        console.error("Error in getProperties:", error);
+        return res.status(500).json({ message: "Error fetching properties" });
+    }
+};
+
+export const identityVerification = async (req: Request, res: Response): Promise<any> => {
+    const landlordId = req.userId;
+    const { flatId } = req.body;
+    try {
+        const user = await User.findById(landlordId);
+        if (!user) {
+            return res.status(404).json({ message: "Landlord not found" });
+        }
+
+        let fileUrl = "";
+        
+        if (req.file) {
+            fileUrl = `/uploads/${req.file.filename}`;
+        } else if (req.body.documentUrl) {
+            fileUrl = req.body.documentUrl;
+        }
+
+        if (!fileUrl) {
+            return res.status(400).json({ message: "Identity proof document is required for verification." });
+        }
+
+        // Check if a verification request already exists
+        let verification = await Verification.findOne({ userId: landlordId, type: "identity" });
+
+        if (verification) {
+            // Update existing verification request to pending
+            verification.idProofUrl = fileUrl;
+            verification.flatId = flatId || undefined;
+            verification.status = "pending";
+            verification.rejectionReason = "";
+            await verification.save();
+        } else {
+            // Create a new verification request
+            verification = new Verification({
+                userId: landlordId,
+                flatId: flatId || undefined,
+                idProofUrl: fileUrl,
+                type: "identity",
+                status: "pending"
+            });
+            await verification.save();
+        }
+
+        // If flatId is provided, update its approval status to pending
+        if (flatId) {
+            await Flat.findByIdAndUpdate(flatId, { isApproved: "pending" });
+        }
+
+        // Make sure user's isVerified is false (or remains false) while request is pending
+        user.isVerified = false;
+        await user.save();
+
+        return res.status(200).json({ 
+            message: "Identity verification request submitted successfully. Status is now pending administrator approval.", 
+            verification,
+            user
+        });
+    } catch (error: any) {
+        console.error("Error in identityVerification:", error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getProfile = async (req: Request, res: Response): Promise<any> => {
+    try {
+        const user = await User.findById(req.userId);
+        const verification = await Verification.findOne({ userId: req.userId, type: "identity" }).populate("flatId", "flatNo status isApproved");
+        return res.status(200).json({ message: "Profile fetched successfully", user, verification });
+    } catch (error: any) {
+        console.error("Error in getProfile:", error);
+        return res.status(500).json({ message: "Error fetching profile" });
+    }
+};
+
+export const getDashboard = async (req: Request, res: Response): Promise<any> => {
+    try {
+        const flats = await Flat.find({ ownerId: req.userId });
+        const totalProperties = flats.length;
+        const occupiedProperties = flats.filter(f => f.status === "occupied").length;
+
+        // Active Tenants matches occupied properties
+        const activeTenants = occupiedProperties;
+
+        // Monthly Income
+        const monthlyIncome = flats
+            .filter(f => f.status === "occupied" && f.monthlyRent)
+            .reduce((sum, f) => sum + parseFloat(f.monthlyRent || "0"), 0);
+
+        // Fetch leases for landlord's flats
+        const landlordLeases = await Lease.find({ flatId: { $in: flats.map(f => f._id) } });
+        const landlordLeaseIds = landlordLeases.map(l => l._id);
+
+        // Fetch payments for these leases
+        const payments = await Payment.find({ leaseId: { $in: landlordLeaseIds } });
+        const pendingPaymentsCount = payments.filter(p => p.status === "pending").length;
+
+        // Lease requests are initial payments that are still pending
+        const pendingLeaseRequests = pendingPaymentsCount;
+
+        return res.status(200).json({
+            success: true,
+            totalProperties,
+            occupiedProperties,
+            pendingPayments: pendingPaymentsCount,
+            monthlyIncome,
+            activeTenants,
+            pendingLeaseRequests
+        });
+    } catch (error: any) {
+        console.error("Error in landlord getDashboard:", error);
+        return res.status(500).json({ message: "Error fetching dashboard statistics" });
     }
 };

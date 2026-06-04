@@ -12,6 +12,8 @@ import cors from "cors";
 connectDB();
 const app = express();
 
+//This is the starting file
+
 app.use(cors());
 app.use(express.json());
 

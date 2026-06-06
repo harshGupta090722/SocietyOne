@@ -33,8 +33,8 @@ const leaseSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["active", "terminated", "expired"],
-        default: "active"
+        enum: ["pending", "active", "rejected", "terminated", "expired"],
+        default: "pending"
     }
 }, { timestamps: true });
 export const Lease = mongoose.model("Lease", leaseSchema);

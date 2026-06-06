@@ -10,7 +10,7 @@ export const getDashboard = async (req: Request, res: Response): Promise<any> =>
     try {
         // Fetch tenant using req.userId set by authMiddleware
         const tenant = await User.findById(req.userId);
-        
+
         if (!tenant) {
             return res.status(404).json({ success: false, message: "Tenant not found" });
         }
@@ -18,13 +18,15 @@ export const getDashboard = async (req: Request, res: Response): Promise<any> =>
         const tenantName = `${tenant.firstName} ${tenant.lastName}`;
 
         const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
+        const pendingLease = await Lease.findOne({ tenantId: req.userId, status: "pending" });
 
         if (!activeLease) {
             return res.status(200).json({
                 success: true,
                 message: "No flat assigned currently",
                 tenantName,
-                flatAssigned: false
+                flatAssigned: false,
+                hasPendingLease: !!pendingLease
             });
         }
 
@@ -46,7 +48,7 @@ export const getDashboard = async (req: Request, res: Response): Promise<any> =>
             const start = new Date(leaseDetails.startDate);
             const now = new Date();
             const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1;
-            
+
             const totalExpectedRent = Math.max(0, months * leaseDetails.monthlyRent);
             let totalPaidApproved = payments
                 .filter(p => p.status === "approved")
@@ -82,26 +84,26 @@ export const makePayment = async (req: Request, res: Response): Promise<any> => 
         const tenant = await User.findById(req.userId);
         const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
         if (!activeLease) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "No active lease found. Please contact the landlord." 
+            return res.status(400).json({
+                success: false,
+                message: "No active lease found. Please contact the landlord."
             });
         }
 
         const flat = await Flat.findById(activeLease.flatId);
         if (!flat) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "No active flat assigned. Please contact the landlord." 
+            return res.status(400).json({
+                success: false,
+                message: "No active flat assigned. Please contact the landlord."
             });
         }
 
         const { amount, screenshotURL } = req.body;
-        
+
         if (!amount || !screenshotURL) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Amount and screenshot URL are required." 
+            return res.status(400).json({
+                success: false,
+                message: "Amount and screenshot URL are required."
             });
         }
 
@@ -119,10 +121,10 @@ export const makePayment = async (req: Request, res: Response): Promise<any> => 
 
         await payment.save();
 
-        return res.status(201).json({ 
-            success: true, 
-            message: "Payment screenshot submitted successfully! Awaiting landlord approval.", 
-            data: payment 
+        return res.status(201).json({
+            success: true,
+            message: "Payment screenshot submitted successfully! Awaiting landlord approval.",
+            data: payment
         });
     } catch (error) {
         console.error("Error in makePayment TenantController:", error);
@@ -134,12 +136,13 @@ export const viewPayments = async (req: Request, res: Response): Promise<any> =>
     try {
         const tenant = await User.findById(req.userId);
 
-        const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
-        if (!activeLease) {
+        const leases = await Lease.find({ tenantId: req.userId });
+        if (leases.length === 0) {
             return res.status(200).json({ success: true, data: [] });
         }
 
-        const payments = await Payment.find({ leaseId: activeLease._id }).sort({ paymentDate: -1 });
+        const leaseIds = leases.map(l => l._id);
+        const payments = await Payment.find({ leaseId: { $in: leaseIds } }).sort({ paymentDate: -1 });
 
         return res.status(200).json({ success: true, data: payments });
     } catch (error) {
@@ -169,13 +172,13 @@ export const tenantVerification = async (req: Request, res: Response): Promise<a
     try {
         const tenantId = req.userId;
         const user = await User.findById(tenantId);
-        
+
         if (!user) {
             return res.status(404).json({ message: "Tenant user not found." });
         }
 
         let fileUrl = "";
-        
+
         if (req.file) {
             fileUrl = `/uploads/${req.file.filename}`;
         } else if (req.body.documentUrl) {
@@ -219,8 +222,8 @@ export const tenantVerification = async (req: Request, res: Response): Promise<a
         user.isVerified = false;
         await user.save();
 
-        return res.status(200).json({ 
-            message: "Identity verification request submitted successfully. Status is now pending administrator approval.", 
+        return res.status(200).json({
+            message: "Identity verification request submitted successfully. Status is now pending administrator approval.",
             verification,
             user
         });
@@ -256,6 +259,12 @@ export const requestRent = async (req: Request, res: Response): Promise<any> => 
             return res.status(404).json({ message: "Flat not found." });
         }
 
+        // Check if the tenant already has an active or pending lease
+        const existingLease = await Lease.findOne({ tenantId: tenantId, status: { $in: ["active", "pending"] } });
+        if (existingLease) {
+            return res.status(400).json({ message: "You can't rent more than one flat as of now. Please make another id to rent another flat." });
+        }
+
         if (flat.status !== "vacant") {
             return res.status(400).json({ message: "This flat is not vacant." });
         }
@@ -265,7 +274,7 @@ export const requestRent = async (req: Request, res: Response): Promise<any> => 
         }
 
         let fileUrl = "";
-        
+
         if (req.file) {
             fileUrl = `/uploads/${req.file.filename}`;
         } else if (req.body.documentUrl) {
@@ -276,7 +285,7 @@ export const requestRent = async (req: Request, res: Response): Promise<any> => 
             return res.status(400).json({ message: "Payment screenshot document is required." });
         }
 
-        // 1. Create the Lease record (starts active but the Flat isn't occupied or bound yet)
+        // 1. Create the Lease record as PENDING — only activated after landlord approves payment
         const rentAmount = parseFloat(flat.monthlyRent || "0");
         const depositAmount = parseFloat(flat.securityDeposit || "0");
 
@@ -292,7 +301,7 @@ export const requestRent = async (req: Request, res: Response): Promise<any> => 
             securityDeposit: depositAmount,
             startDate,
             endDate,
-            status: "active"
+            status: "pending"
         });
         await lease.save();
 

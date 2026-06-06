@@ -45,7 +45,8 @@ export const getDocumentVerifications = async (req, res) => {
     try {
         const verifications = await Verification.find()
             .populate("userId", "firstName lastName email role phone isVerified")
-            .populate("flatId", "flatNo status isApproved");
+            .populate("flatId", "flatNo status isApproved")
+            .populate("attempts.flatId", "flatNo status isApproved");
         const allRequests = [];
         for (const v of verifications) {
             // Push the current/latest request

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Building, 
-  User, 
-  CreditCard, 
-  ShieldCheck, 
-  Upload, 
-  QrCode, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  Building,
+  User,
+  CreditCard,
+  ShieldCheck,
+  Upload,
+  QrCode,
+  AlertCircle,
+  CheckCircle2,
   Image as ImageIcon,
   Loader2,
   X
@@ -33,30 +33,52 @@ function RentProperty() {
   const [flats, setFlats] = useState<Flat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Modal / Request State
   const [selectedFlat, setSelectedFlat] = useState<Flat | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [hasActiveLease, setHasActiveLease] = useState(false);
+  const [hasPendingLease, setHasPendingLease] = useState(false);
 
   useEffect(() => {
-    fetchVacantFlats();
+    const initialize = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const [flatsRes, dashRes] = await Promise.all([
+          api.get('/tenant/vacant-flats'),
+          api.get('/tenant/dashboard').catch(() => null)
+        ]);
+
+        if (flatsRes.data && flatsRes.data.flats) {
+          setFlats(flatsRes.data.flats);
+        }
+        if (dashRes?.data?.flatAssigned) {
+          setHasActiveLease(true);
+        }
+        if (dashRes?.data?.hasPendingLease) {
+          setHasPendingLease(true);
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to fetch vacant properties.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initialize();
   }, []);
 
   const fetchVacantFlats = async () => {
     try {
-      setIsLoading(true);
-      setError('');
       const response = await api.get('/tenant/vacant-flats');
       if (response.data && response.data.flats) {
         setFlats(response.data.flats);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch vacant properties.');
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to refresh vacant flats', err);
     }
   };
 
@@ -78,7 +100,7 @@ function RentProperty() {
     try {
       setIsSubmitting(true);
       setSubmitError('');
-      
+
       const formData = new FormData();
       formData.append('flatId', selectedFlat._id);
       formData.append('document', selectedFile);
@@ -92,7 +114,7 @@ function RentProperty() {
       setSuccessMsg(`Your lease request for Flat ${selectedFlat.flatNo} has been submitted successfully! Status is pending landlord payment verification.`);
       setSelectedFlat(null);
       setSelectedFile(null);
-      
+
       // Refresh vacant flats
       await fetchVacantFlats();
     } catch (err: any) {
@@ -119,6 +141,26 @@ function RentProperty() {
         </div>
       )}
 
+      {hasActiveLease && (
+        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl flex items-start gap-3 animate-fadeIn">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block">Active Lease Restriction</span>
+            <span className="text-sm leading-relaxed">You can't rent more than one flat as of now. Please make another id to rent another flat.</span>
+          </div>
+        </div>
+      )}
+
+      {hasPendingLease && (
+        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl flex items-start gap-3 animate-fadeIn">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block">Pending Lease Request</span>
+            <span className="text-sm leading-relaxed">You already have an active Lease Request.Please wait for it's Execution.</span>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
@@ -134,8 +176,8 @@ function RentProperty() {
       ) : flats.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {flats.map((flat) => (
-            <div 
-              key={flat._id} 
+            <div
+              key={flat._id}
               className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between overflow-hidden"
             >
               <div className="p-6 space-y-4">
@@ -188,12 +230,14 @@ function RentProperty() {
               <div className="p-6 pt-0">
                 <button
                   onClick={() => {
+                    if (hasActiveLease || hasPendingLease) return;
                     setSelectedFlat(flat);
                     setSuccessMsg('');
                     setSubmitError('');
                     setSelectedFile(null);
                   }}
-                  className="w-full py-2.5 px-4 bg-[#1e293b] hover:bg-slate-800 text-white font-bold rounded-xl text-sm transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
+                  disabled={hasActiveLease || hasPendingLease}
+                  className="w-full py-2.5 px-4 bg-[#1e293b] hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
                 >
                   <QrCode className="w-4 h-4" /> Request Property
                 </button>
@@ -243,7 +287,7 @@ function RentProperty() {
                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
                   Landlord Payment QR Code
                 </p>
-                
+
                 {/* Simulated QR Code Canvas / Layout */}
                 <div className="relative mx-auto w-40 h-40 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center shadow-sm p-3 group hover:scale-[1.02] transition-transform duration-200">
                   <img
@@ -272,7 +316,7 @@ function RentProperty() {
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Upload Payment Screenshot
                 </label>
-                
+
                 <div className="relative border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-2xl p-6 transition-all duration-200 bg-slate-50/50 hover:bg-slate-50 text-center cursor-pointer group">
                   <input
                     type="file"

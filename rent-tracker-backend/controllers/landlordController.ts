@@ -181,14 +181,26 @@ export const updatePaymentStatus = async (req: Request, res: Response): Promise<
         );
 
         if (payment && status === "approved") {
+            // Activate the pending lease and mark the flat as occupied
             const lease = await Lease.findById(payment.leaseId);
             if (lease) {
+                lease.status = "active";
+                await lease.save();
+
                 const flat = await Flat.findById(lease.flatId);
                 if (flat) {
                     flat.status = "occupied";
                     flat.leaseId = lease._id as any;
                     await flat.save();
                 }
+            }
+        } else if (payment && status === "rejected") {
+            // Reject the pending lease — everything goes back to normal
+            const lease = await Lease.findById(payment.leaseId);
+            if (lease && lease.status === "pending") {
+                lease.status = "rejected";
+                await lease.save();
+                // Flat stays vacant, no changes needed
             }
         }
 

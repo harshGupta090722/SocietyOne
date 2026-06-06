@@ -148,21 +148,18 @@ function LandlordProfile() {
                 </h2>
                 
                 {/* Verification Badge */}
-                {profile.isVerified ? (
-                  <span className="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 py-1 px-3 rounded-full border border-emerald-200 shadow-sm">
-                    <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
-                    Verified
-                  </span>
-                ) : verification?.status === 'pending' ? (
-                  <span className="inline-flex items-center text-xs font-bold text-amber-700 bg-amber-50 py-1 px-3 rounded-full border border-amber-200 shadow-sm animate-pulse">
-                    <AlertCircle className="w-3.5 h-3.5 mr-1 text-amber-600" />
-                    Pending Verification
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center text-xs font-bold text-rose-700 bg-rose-50 py-1 px-3 rounded-full border border-rose-200 shadow-sm">
-                    <ShieldAlert className="w-3.5 h-3.5 mr-1 text-rose-600" />
-                    Unverified
-                  </span>
+                {!profile.isVerified && (
+                  verification?.status === 'pending' ? (
+                    <span className="inline-flex items-center text-xs font-bold text-amber-700 bg-amber-50 py-1 px-3 rounded-full border border-amber-200 shadow-sm animate-pulse">
+                      <AlertCircle className="w-3.5 h-3.5 mr-1 text-amber-600" />
+                      Pending Verification
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center text-xs font-bold text-rose-700 bg-rose-50 py-1 px-3 rounded-full border border-rose-200 shadow-sm">
+                      <ShieldAlert className="w-3.5 h-3.5 mr-1 text-rose-600" />
+                      Unverified
+                    </span>
+                  )
                 )}
               </div>
               <p className="text-sm text-slate-500 mt-1 capitalize font-medium flex items-center gap-1.5">
@@ -173,27 +170,22 @@ function LandlordProfile() {
 
             {/* Quick Status Action / Indicator */}
             <div>
-              {profile.isVerified ? (
-                <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Verification Status</span>
-                  <span className="text-sm font-semibold text-emerald-600 flex items-center justify-end gap-1 mt-0.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Active & Approved
-                  </span>
-                </div>
-              ) : verification?.status === 'pending' ? (
-                <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Verification Status</span>
-                  <span className="text-sm font-semibold text-amber-600 flex items-center justify-end gap-1 mt-0.5">
-                    <AlertCircle className="w-4 h-4 text-amber-500" /> Under Admin Review
-                  </span>
-                </div>
-              ) : (
-                <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Verification Status</span>
-                  <span className="text-sm font-semibold text-rose-500 flex items-center justify-end gap-1 mt-0.5">
-                    <AlertCircle className="w-4 h-4 text-rose-400" /> Action Required
-                  </span>
-                </div>
+              {!profile.isVerified && (
+                verification?.status === 'pending' ? (
+                  <div className="text-right">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Verification Status</span>
+                    <span className="text-sm font-semibold text-amber-600 flex items-center justify-end gap-1 mt-0.5">
+                      <AlertCircle className="w-4 h-4 text-amber-500" /> Under Admin Review
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-right">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Verification Status</span>
+                    <span className="text-sm font-semibold text-rose-500 flex items-center justify-end gap-1 mt-0.5">
+                      <AlertCircle className="w-4 h-4 text-rose-400" /> Action Required
+                    </span>
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -358,6 +350,12 @@ function LandlordProfile() {
                   </div>
                 )}
 
+                {profile.isVerified && (
+                  <div className="text-sm text-emerald-600 font-semibold mt-2">
+                    You Are verified
+                  </div>
+                )}
+
                 {verification.status === 'rejected' && verification.rejectionReason && (
                   <div className="p-3 bg-red-50/50 border border-red-100 text-red-700 rounded-lg text-xs">
                     <span className="font-bold block mb-1">Rejection Reason:</span>
@@ -373,48 +371,59 @@ function LandlordProfile() {
                 )}
               </div>
 
-              {(effectiveStatus === 'rejected' || effectiveStatus === 'unverified') && (
-                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4 mt-6">
-                  <h4 className="text-sm font-bold text-slate-800">Re-submit Verification Request</h4>
-                  <form onSubmit={handleVerifySubmit} className="space-y-4">
-                    {/* File Input */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Upload Identity Proof (Aadhaar / Passport)</label>
-                      <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                        className="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer"
-                      />
+              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4 mt-6">
+                <h4 className="text-sm font-bold text-slate-800">
+                  {profile.isVerified ? 'Verification Details' : 'Re-submit Verification Request'}
+                </h4>
+                <form onSubmit={handleVerifySubmit} className="space-y-4">
+                  {/* File Input */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Upload Identity Proof (Aadhaar / Passport)</label>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      disabled={profile.isVerified || effectiveStatus === 'pending'}
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      className={`w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white ${
+                        (profile.isVerified || effectiveStatus === 'pending') ? 'bg-slate-100 cursor-not-allowed text-slate-400' : 'cursor-pointer'
+                      }`}
+                    />
+                  </div>
+
+                  {verifyErrorMsg && (
+                    <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg text-rose-700 text-xs font-medium">
+                      {verifyErrorMsg}
                     </div>
+                  )}
 
-                    {verifyErrorMsg && (
-                      <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg text-rose-700 text-xs font-medium">
-                        {verifyErrorMsg}
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={isVerifying}
-                      className="w-full py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md"
-                    >
-                      {isVerifying ? 'Submitting Request...' : 'Get Verified'}
-                    </button>
-                  </form>
-                </div>
-              )}
+                  <button
+                    type="submit"
+                    disabled={isVerifying || profile.isVerified || effectiveStatus === 'pending'}
+                    className="w-full py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+                  >
+                    {isVerifying ? 'Submitting Request...' : 'Get Verified'}
+                  </button>
+                </form>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleVerifySubmit} className="space-y-4">
+              {profile.isVerified && (
+                <div className="text-sm text-emerald-600 font-semibold mb-2">
+                  You Are verified
+                </div>
+              )}
               {/* File Input */}
               <div>
                 <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Upload Identity Proof (Aadhaar / Passport)</label>
                 <input
                   type="file"
                   accept="image/*,application/pdf"
+                  disabled={profile.isVerified}
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer"
+                  className={`w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white ${
+                    profile.isVerified ? 'bg-slate-100 cursor-not-allowed text-slate-400' : 'cursor-pointer'
+                  }`}
                 />
               </div>
 
@@ -432,8 +441,8 @@ function LandlordProfile() {
 
               <button
                 type="submit"
-                disabled={isVerifying}
-                className="w-full py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md"
+                disabled={isVerifying || profile.isVerified}
+                className="w-full py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
               >
                 {isVerifying ? 'Submitting Request...' : 'Get Verified'}
               </button>

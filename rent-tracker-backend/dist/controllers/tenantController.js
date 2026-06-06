@@ -13,12 +13,14 @@ export const getDashboard = async (req, res) => {
         }
         const tenantName = `${tenant.firstName} ${tenant.lastName}`;
         const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
+        const pendingLease = await Lease.findOne({ tenantId: req.userId, status: "pending" });
         if (!activeLease) {
             return res.status(200).json({
                 success: true,
                 message: "No flat assigned currently",
                 tenantName,
-                flatAssigned: false
+                flatAssigned: false,
+                hasPendingLease: !!pendingLease
             });
         }
         const flat = await Flat.findById(activeLease.flatId);
@@ -112,11 +114,12 @@ export const makePayment = async (req, res) => {
 export const viewPayments = async (req, res) => {
     try {
         const tenant = await User.findById(req.userId);
-        const activeLease = await Lease.findOne({ tenantId: req.userId, status: "active" });
-        if (!activeLease) {
+        const leases = await Lease.find({ tenantId: req.userId });
+        if (leases.length === 0) {
             return res.status(200).json({ success: true, data: [] });
         }
-        const payments = await Payment.find({ leaseId: activeLease._id }).sort({ paymentDate: -1 });
+        const leaseIds = leases.map(l => l._id);
+        const payments = await Payment.find({ leaseId: { $in: leaseIds } }).sort({ paymentDate: -1 });
         return res.status(200).json({ success: true, data: payments });
     }
     catch (error) {
@@ -219,6 +222,11 @@ export const requestRent = async (req, res) => {
         if (!flat) {
             return res.status(404).json({ message: "Flat not found." });
         }
+        // Check if the tenant already has an active or pending lease
+        const existingLease = await Lease.findOne({ tenantId: tenantId, status: { $in: ["active", "pending"] } });
+        if (existingLease) {
+            return res.status(400).json({ message: "You can't rent more than one flat as of now. Please make another id to rent another flat." });
+        }
         if (flat.status !== "vacant") {
             return res.status(400).json({ message: "This flat is not vacant." });
         }
@@ -235,7 +243,7 @@ export const requestRent = async (req, res) => {
         if (!fileUrl) {
             return res.status(400).json({ message: "Payment screenshot document is required." });
         }
-        // 1. Create the Lease record (starts active but the Flat isn't occupied or bound yet)
+        // 1. Create the Lease record as PENDING — only activated after landlord approves payment
         const rentAmount = parseFloat(flat.monthlyRent || "0");
         const depositAmount = parseFloat(flat.securityDeposit || "0");
         const startDate = new Date();
@@ -249,7 +257,7 @@ export const requestRent = async (req, res) => {
             securityDeposit: depositAmount,
             startDate,
             endDate,
-            status: "active"
+            status: "pending"
         });
         await lease.save();
         // 2. Create the Payment record linking to the Lease

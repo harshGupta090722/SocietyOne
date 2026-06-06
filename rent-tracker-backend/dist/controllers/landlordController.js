@@ -72,6 +72,28 @@ export const addProperty = async (req, res) => {
         if (flat.ownerId && flat.isApproved === 'pending' && flat.ownerId.toString() !== req.userId) {
             return res.status(400).json({ message: `Flat ${flatNo} registration is pending approval for another landlord.` });
         }
+        // If flat is already approved for the same landlord
+        if (flat.ownerId && flat.isApproved === 'approved' && flat.ownerId.toString() === req.userId) {
+            return res.status(400).json({ message: `Flat ${flatNo} is already registered and approved for you.` });
+        }
+        // If flat is pending approval for the same landlord
+        if (flat.ownerId && flat.isApproved === 'pending' && flat.ownerId.toString() === req.userId) {
+            return res.status(400).json({ message: "Request already exists for the property, Please wait for admin approval" });
+        }
+        // Check if an ownership verification request already exists for this landlord AND this specific flat
+        let verification = await Verification.findOne({
+            userId: req.userId,
+            flatId: flat._id,
+            type: "ownership"
+        });
+        if (verification) {
+            if (verification.status === "pending") {
+                return res.status(400).json({ message: "Request already exists for the property, Please wait for admin approval" });
+            }
+            if (verification.status === "approved") {
+                return res.status(400).json({ message: `Flat ${flatNo} is already registered and approved for you.` });
+            }
+        }
         let fileUrl = "";
         if (req.file) {
             fileUrl = `/uploads/${req.file.filename}`;
@@ -89,15 +111,32 @@ export const addProperty = async (req, res) => {
         flat.status = "vacant";
         flat.isApproved = "pending";
         await flat.save();
-        // Create an ownership verification request
-        const verification = new Verification({
-            userId: req.userId,
-            flatId: flat._id,
-            idProofUrl: fileUrl,
-            type: "ownership",
-            status: "pending"
-        });
-        await verification.save();
+        if (verification) {
+            // Push current state to attempts log
+            verification.attempts.push({
+                idProofUrl: verification.idProofUrl,
+                status: verification.status,
+                rejectionReason: verification.rejectionReason || "",
+                flatId: verification.flatId,
+                submittedAt: verification.updatedAt || new Date()
+            });
+            // Update existing verification request to pending
+            verification.idProofUrl = fileUrl;
+            verification.status = "pending";
+            verification.rejectionReason = "";
+            await verification.save();
+        }
+        else {
+            // Create a new verification request
+            verification = new Verification({
+                userId: req.userId,
+                flatId: flat._id,
+                idProofUrl: fileUrl,
+                type: "ownership",
+                status: "pending"
+            });
+            await verification.save();
+        }
         return res.status(200).json({
             message: "Property registration submitted successfully! Awaiting administrator approval.",
             flat,
@@ -115,14 +154,26 @@ export const updatePaymentStatus = async (req, res) => {
     try {
         const payment = await Payment.findOneAndUpdate({ paymentId: paymentId }, { status: status }, { new: true });
         if (payment && status === "approved") {
+            // Activate the pending lease and mark the flat as occupied
             const lease = await Lease.findById(payment.leaseId);
             if (lease) {
+                lease.status = "active";
+                await lease.save();
                 const flat = await Flat.findById(lease.flatId);
                 if (flat) {
                     flat.status = "occupied";
                     flat.leaseId = lease._id;
                     await flat.save();
                 }
+            }
+        }
+        else if (payment && status === "rejected") {
+            // Reject the pending lease — everything goes back to normal
+            const lease = await Lease.findById(payment.leaseId);
+            if (lease && lease.status === "pending") {
+                lease.status = "rejected";
+                await lease.save();
+                // Flat stays vacant, no changes needed
             }
         }
         return res.status(200).json({ message: "Payment status updated successfully", payment });

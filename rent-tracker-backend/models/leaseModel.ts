@@ -8,7 +8,7 @@ export interface ILease extends Document {
     securityDeposit: number;
     startDate: Date;
     endDate: Date;
-    status: "active" | "terminated" | "expired";
+    status: "pending" | "active" | "rejected" | "terminated" | "expired";
 }
 
 const leaseSchema: Schema = new mongoose.Schema({
@@ -45,8 +45,8 @@ const leaseSchema: Schema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["active", "terminated", "expired"],
-        default: "active"
+        enum: ["pending", "active", "rejected", "terminated", "expired"],
+        default: "pending"
     }
 }, { timestamps: true });
 

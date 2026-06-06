@@ -54,7 +54,7 @@ function Profile() {
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
           
           {/* Accent Header */}
-          <div className="h-32 bg-slate-900 flex items-end p-6 relative">
+          <div className="h-32 bg-slate-900 flex items-end p-6 relative rounded-t-xl">
             <div className="absolute -bottom-10 left-6 h-20 w-20 bg-blue-600 rounded-xl flex items-center justify-center text-white border-4 border-white shadow-md text-2xl font-bold uppercase">
               {admin.firstName.charAt(0)}{admin.lastName.charAt(0)}
             </div>

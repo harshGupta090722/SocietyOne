@@ -45,10 +45,41 @@ export const getDocumentVerifications = async (req, res) => {
     try {
         const verifications = await Verification.find()
             .populate("userId", "firstName lastName email role phone isVerified")
-            .sort({ createdAt: -1 });
+            .populate("flatId", "flatNo status isApproved");
+        const allRequests = [];
+        for (const v of verifications) {
+            // Push the current/latest request
+            allRequests.push({
+                _id: v._id,
+                userId: v.userId,
+                flatId: v.flatId,
+                idProofUrl: v.idProofUrl,
+                status: v.status,
+                type: v.type,
+                rejectionReason: v.rejectionReason,
+                createdAt: v.updatedAt || v.createdAt
+            });
+            // Push past attempts
+            if (v.attempts && v.attempts.length > 0) {
+                v.attempts.forEach((attempt, index) => {
+                    allRequests.push({
+                        _id: `${v._id}-attempt-${index}`,
+                        userId: v.userId,
+                        flatId: attempt.flatId || v.flatId,
+                        idProofUrl: attempt.idProofUrl,
+                        status: attempt.status,
+                        type: v.type,
+                        rejectionReason: attempt.rejectionReason,
+                        createdAt: attempt.submittedAt
+                    });
+                });
+            }
+        }
+        // Sort all requests by date descending
+        allRequests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         return res.status(200).json({
             success: true,
-            verifications
+            verifications: allRequests
         });
     }
     catch (error) {
@@ -74,9 +105,30 @@ export const handleDocumentVerification = async (req, res) => {
             verification.rejectionReason = "";
         }
         await verification.save();
-        // Update User verification status
-        const isVerified = status === "approved";
-        await User.findByIdAndUpdate(verification.userId, { isVerified });
+        // Update User verification status ONLY if it is identity verification
+        if (!verification.type || verification.type === "identity") {
+            const isVerified = status === "approved";
+            await User.findByIdAndUpdate(verification.userId, { isVerified });
+        }
+        // Update Flat approval status if flatId is present
+        if (verification.flatId) {
+            const flatStatus = status === "approved" ? "approved" : "notApproved";
+            const flat = await Flat.findById(verification.flatId);
+            if (flat) {
+                flat.isApproved = flatStatus;
+                if (verification.type === "ownership") {
+                    if (status === "approved") {
+                        flat.ownerId = verification.userId;
+                        flat.status = "vacant";
+                    }
+                    else {
+                        flat.ownerId = null;
+                        flat.status = "unassigned";
+                    }
+                }
+                await flat.save();
+            }
+        }
         return res.status(200).json({
             success: true,
             message: `Verification successfully ${status}`,

@@ -30,8 +30,6 @@ function LandlordProfile() {
   const { isVerified } = useOutletContext<{ isVerified: boolean }>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [verification, setVerification] = useState<any>(null);
-  const [properties, setProperties] = useState<any[]>([]);
-  const [selectedFlatId, setSelectedFlatId] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
@@ -48,20 +46,11 @@ function LandlordProfile() {
         setProfile(profileRes.data.user);
         if (profileRes.data.verification) {
           setVerification(profileRes.data.verification);
-          if (profileRes.data.verification.flatId) {
-            setSelectedFlatId(profileRes.data.verification.flatId._id || profileRes.data.verification.flatId);
-          }
         } else {
           setVerification(null);
         }
       } else {
         setError('Profile data structure unexpected.');
-      }
-
-      // Fetch properties
-      const propertiesRes = await api.get('/landlord/properties');
-      if (propertiesRes.data && propertiesRes.data.flats) {
-        setProperties(propertiesRes.data.flats);
       }
     } catch (err: any) {
       console.error('Error fetching landlord data:', err);
@@ -88,9 +77,6 @@ function LandlordProfile() {
     setIsVerifying(true);
     const formData = new FormData();
     formData.append('document', selectedFile);
-    if (selectedFlatId) {
-      formData.append('flatId', selectedFlatId);
-    }
 
     try {
       const response = await api.post('/landlord/identityVerification', formData, {
@@ -134,16 +120,20 @@ function LandlordProfile() {
 
   if (!profile) return null;
 
+  const effectiveStatus = (verification && !profile.isVerified && verification.status === 'approved')
+    ? 'unverified'
+    : verification?.status;
+
   return (
     <div className="max-w-3xl mx-auto font-sans p-2 bg-[#f8fafc] min-h-[calc(100vh-120px)] pb-12">
       
       {/* Profile Header Block */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8 transition-all hover:shadow-md duration-300">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8 transition-shadow hover:shadow-md duration-300">
         
         {/* Accent Banner with Gradient */}
-        <div className="h-36 bg-gradient-to-r from-slate-800 to-slate-950 flex items-end p-6 relative">
+        <div className="h-36 bg-gradient-to-r from-slate-800 to-slate-950 flex items-end p-6 relative rounded-t-2xl">
           {/* Large Initials Avatar */}
-          <div className="absolute -bottom-12 left-8 h-24 w-24 bg-[#2563eb] rounded-2xl flex items-center justify-center text-white border-4 border-white shadow-lg text-3xl font-bold uppercase transition-all duration-300 hover:scale-105">
+          <div className="absolute -bottom-12 left-8 h-24 w-24 bg-[#2563eb] rounded-2xl flex items-center justify-center text-white border-4 border-white shadow-lg text-3xl font-bold uppercase transition-transform duration-300 hover:scale-105">
             {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
           </div>
         </div>
@@ -349,13 +339,13 @@ function LandlordProfile() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-slate-600">Verification Status</span>
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
-                    verification.status === 'approved'
+                    effectiveStatus === 'approved'
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : verification.status === 'rejected'
+                      : (effectiveStatus === 'rejected' || effectiveStatus === 'unverified')
                       ? 'bg-red-50 text-red-700 border border-red-200'
                       : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
                   }`}>
-                    {verification.status}
+                    {effectiveStatus}
                   </span>
                 </div>
 
@@ -374,29 +364,19 @@ function LandlordProfile() {
                     {verification.rejectionReason}
                   </div>
                 )}
+
+                {!profile.isVerified && verification.status === 'approved' && (
+                  <div className="p-3 bg-rose-50 border border-rose-100 text-rose-700 rounded-lg text-xs font-medium">
+                    <span className="font-bold block mb-1">Status Note:</span>
+                    Your verification status has been revoked/reset by the administrator. Please re-submit your identity proof.
+                  </div>
+                )}
               </div>
 
-              {verification.status === 'rejected' && (
+              {(effectiveStatus === 'rejected' || effectiveStatus === 'unverified') && (
                 <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4 mt-6">
                   <h4 className="text-sm font-bold text-slate-800">Re-submit Verification Request</h4>
                   <form onSubmit={handleVerifySubmit} className="space-y-4">
-                    {/* Flat Select */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Select Your Property / Flat</label>
-                      <select
-                        className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                        value={selectedFlatId}
-                        onChange={(e) => setSelectedFlatId(e.target.value)}
-                      >
-                        <option value="">-- No flat association --</option>
-                        {properties.map((p: any) => (
-                          <option key={p._id} value={p._id}>
-                            Flat {p.flatNo} ({p.isApproved})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
                     {/* File Input */}
                     <div>
                       <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Upload Identity Proof (Aadhaar / Passport)</label>
@@ -427,29 +407,6 @@ function LandlordProfile() {
             </div>
           ) : (
             <form onSubmit={handleVerifySubmit} className="space-y-4">
-              {/* Flat Select */}
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Select Your Property / Flat</label>
-                {properties.length === 0 ? (
-                  <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-amber-700 text-xs">
-                    No registered flats found. Please add a property first in your Dashboard / Property list to claim it.
-                  </div>
-                ) : (
-                  <select
-                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                    value={selectedFlatId}
-                    onChange={(e) => setSelectedFlatId(e.target.value)}
-                  >
-                    <option value="">-- No flat association --</option>
-                    {properties.map((p: any) => (
-                      <option key={p._id} value={p._id}>
-                        Flat {p.flatNo} ({p.isApproved})
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
               {/* File Input */}
               <div>
                 <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Upload Identity Proof (Aadhaar / Passport)</label>

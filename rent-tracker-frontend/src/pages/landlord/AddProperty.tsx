@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import api from '../../api';
 import { 
   Building, 
@@ -8,7 +8,8 @@ import {
   AlertTriangle,
   Loader2,
   FileText,
-  Home
+  Home,
+  X
 } from 'lucide-react';
 
 function AddProperty() {
@@ -16,6 +17,7 @@ function AddProperty() {
   const [monthlyRent, setMonthlyRent] = useState('');
   const [securityDeposit, setSecurityDeposit] = useState('');
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -58,6 +60,7 @@ function AddProperty() {
         setMonthlyRent('');
         setSecurityDeposit('');
         setDocumentFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     } catch (err: any) {
       console.error('Error submitting property claim:', err);
@@ -162,10 +165,11 @@ function AddProperty() {
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
               Ownership Proof Document
             </label>
-            <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl p-6 transition-all bg-slate-50/50">
+            <div className="relative border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl p-6 transition-all bg-slate-50/50">
               <input
                 type="file"
                 id="document-upload"
+                ref={fileInputRef}
                 className="hidden"
                 accept="image/*,application/pdf"
                 onChange={handleFileChange}
@@ -181,6 +185,20 @@ function AddProperty() {
                   <p className="text-xs text-slate-400 mt-1">PNG, JPG, JPEG, or PDF up to 5MB</p>
                 </div>
               </label>
+              {documentFile && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDocumentFile(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="absolute top-2 right-2 p-1 rounded-full bg-slate-200 hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition-colors"
+                  title="Remove file"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 

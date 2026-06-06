@@ -120,16 +120,20 @@ function TenantProfile() {
 
   if (!profile) return null;
 
+  const effectiveStatus = (verification && !profile.isVerified && verification.status === 'approved')
+    ? 'unverified'
+    : verification?.status;
+
   return (
     <div className="max-w-3xl mx-auto font-sans p-2 bg-[#f8fafc] min-h-[calc(100vh-120px)] pb-12">
       
       {/* Profile Header Block */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8 transition-all hover:shadow-md duration-300">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8 transition-shadow hover:shadow-md duration-300">
         
         {/* Accent Banner with Gradient */}
-        <div className="h-36 bg-gradient-to-r from-slate-800 to-slate-950 flex items-end p-6 relative">
+        <div className="h-36 bg-gradient-to-r from-slate-800 to-slate-950 flex items-end p-6 relative rounded-t-2xl">
           {/* Large Initials Avatar */}
-          <div className="absolute -bottom-12 left-8 h-24 w-24 bg-[#2563eb] rounded-2xl flex items-center justify-center text-white border-4 border-white shadow-lg text-3xl font-bold uppercase transition-all duration-300 hover:scale-105">
+          <div className="absolute -bottom-12 left-8 h-24 w-24 bg-[#2563eb] rounded-2xl flex items-center justify-center text-white border-4 border-white shadow-lg text-3xl font-bold uppercase transition-transform duration-300 hover:scale-105">
             {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
           </div>
         </div>
@@ -335,13 +339,13 @@ function TenantProfile() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-slate-600">Verification Status</span>
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
-                    verification.status === 'approved'
+                    effectiveStatus === 'approved'
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : verification.status === 'rejected'
+                      : (effectiveStatus === 'rejected' || effectiveStatus === 'unverified')
                       ? 'bg-red-50 text-red-700 border border-red-200'
                       : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
                   }`}>
-                    {verification.status}
+                    {effectiveStatus}
                   </span>
                 </div>
 
@@ -351,9 +355,16 @@ function TenantProfile() {
                     {verification.rejectionReason}
                   </div>
                 )}
+
+                {!profile.isVerified && verification.status === 'approved' && (
+                  <div className="p-3 bg-rose-50 border border-rose-100 text-rose-700 rounded-lg text-xs font-medium">
+                    <span className="font-bold block mb-1">Status Note:</span>
+                    Your verification status has been revoked/reset by the administrator. Please re-submit your identity proof.
+                  </div>
+                )}
               </div>
 
-              {verification.status === 'rejected' && (
+              {(effectiveStatus === 'rejected' || effectiveStatus === 'unverified') && (
                 <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4 mt-6">
                   <h4 className="text-sm font-bold text-slate-800">Re-submit Verification Request</h4>
                   <form onSubmit={handleVerifySubmit} className="space-y-4">

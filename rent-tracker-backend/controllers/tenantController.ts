@@ -190,6 +190,15 @@ export const tenantVerification = async (req: Request, res: Response): Promise<a
         let verification = await Verification.findOne({ userId: tenantId, type: "identity" });
 
         if (verification) {
+            // Push current state to attempts log
+            verification.attempts.push({
+                idProofUrl: verification.idProofUrl,
+                status: verification.status,
+                rejectionReason: verification.rejectionReason || "",
+                flatId: verification.flatId,
+                submittedAt: (verification as any).updatedAt || new Date()
+            });
+
             // Update existing verification request to pending
             verification.idProofUrl = fileUrl;
             verification.status = "pending";

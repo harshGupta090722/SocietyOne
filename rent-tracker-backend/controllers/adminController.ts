@@ -50,11 +50,45 @@ export const getDocumentVerifications = async (req: Request, res: Response): Pro
         const verifications = await Verification.find()
             .populate("userId", "firstName lastName email role phone isVerified")
             .populate("flatId", "flatNo status isApproved")
-            .sort({ createdAt: -1 });
+            .populate("attempts.flatId", "flatNo status isApproved");
+
+        const allRequests: any[] = [];
+        for (const v of verifications) {
+            // Push the current/latest request
+            allRequests.push({
+                _id: v._id,
+                userId: v.userId,
+                flatId: v.flatId,
+                idProofUrl: v.idProofUrl,
+                status: v.status,
+                type: v.type,
+                rejectionReason: v.rejectionReason,
+                createdAt: v.updatedAt || v.createdAt
+            });
+
+            // Push past attempts
+            if (v.attempts && v.attempts.length > 0) {
+                v.attempts.forEach((attempt, index) => {
+                    allRequests.push({
+                        _id: `${v._id}-attempt-${index}`,
+                        userId: v.userId,
+                        flatId: attempt.flatId || v.flatId,
+                        idProofUrl: attempt.idProofUrl,
+                        status: attempt.status,
+                        type: v.type,
+                        rejectionReason: attempt.rejectionReason,
+                        createdAt: attempt.submittedAt
+                    });
+                });
+            }
+        }
+
+        // Sort all requests by date descending
+        allRequests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         return res.status(200).json({
             success: true,
-            verifications
+            verifications: allRequests
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Error in getDocumentVerifications Admin Controller", error });

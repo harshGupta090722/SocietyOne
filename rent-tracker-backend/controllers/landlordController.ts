@@ -85,6 +85,32 @@ export const addProperty = async (req: Request, res: Response): Promise<any> => 
             return res.status(400).json({ message: `Flat ${flatNo} registration is pending approval for another landlord.` });
         }
 
+        // If flat is already approved for the same landlord
+        if (flat.ownerId && flat.isApproved === 'approved' && flat.ownerId.toString() === req.userId) {
+            return res.status(400).json({ message: `Flat ${flatNo} is already registered and approved for you.` });
+        }
+
+        // If flat is pending approval for the same landlord
+        if (flat.ownerId && flat.isApproved === 'pending' && flat.ownerId.toString() === req.userId) {
+            return res.status(400).json({ message: "Request already exists for the property, Please wait for admin approval" });
+        }
+
+        // Check if an ownership verification request already exists for this landlord AND this specific flat
+        let verification = await Verification.findOne({
+            userId: req.userId,
+            flatId: flat._id,
+            type: "ownership"
+        });
+
+        if (verification) {
+            if (verification.status === "pending") {
+                return res.status(400).json({ message: "Request already exists for the property, Please wait for admin approval" });
+            }
+            if (verification.status === "approved") {
+                return res.status(400).json({ message: `Flat ${flatNo} is already registered and approved for you.` });
+            }
+        }
+
         let fileUrl = "";
         if (req.file) {
             fileUrl = `/uploads/${req.file.filename}`;
@@ -105,15 +131,32 @@ export const addProperty = async (req: Request, res: Response): Promise<any> => 
 
         await flat.save();
 
-        // Create an ownership verification request
-        const verification = new Verification({
-            userId: req.userId,
-            flatId: flat._id,
-            idProofUrl: fileUrl,
-            type: "ownership",
-            status: "pending"
-        });
-        await verification.save();
+        if (verification) {
+            // Push current state to attempts log
+            verification.attempts.push({
+                idProofUrl: verification.idProofUrl,
+                status: verification.status,
+                rejectionReason: verification.rejectionReason || "",
+                flatId: verification.flatId,
+                submittedAt: (verification as any).updatedAt || new Date()
+            });
+
+            // Update existing verification request to pending
+            verification.idProofUrl = fileUrl;
+            verification.status = "pending";
+            verification.rejectionReason = "";
+            await verification.save();
+        } else {
+            // Create a new verification request
+            verification = new Verification({
+                userId: req.userId,
+                flatId: flat._id,
+                idProofUrl: fileUrl,
+                type: "ownership",
+                status: "pending"
+            });
+            await verification.save();
+        }
 
         return res.status(200).json({
             message: "Property registration submitted successfully! Awaiting administrator approval.",
@@ -203,7 +246,7 @@ export const identityVerification = async (req: Request, res: Response): Promise
         }
 
         let fileUrl = "";
-        
+
         if (req.file) {
             fileUrl = `/uploads/${req.file.filename}`;
         } else if (req.body.documentUrl) {
@@ -218,6 +261,15 @@ export const identityVerification = async (req: Request, res: Response): Promise
         let verification = await Verification.findOne({ userId: landlordId, type: "identity" });
 
         if (verification) {
+            // Push current state to attempts log
+            verification.attempts.push({
+                idProofUrl: verification.idProofUrl,
+                status: verification.status,
+                rejectionReason: verification.rejectionReason || "",
+                flatId: verification.flatId,
+                submittedAt: (verification as any).updatedAt || new Date()
+            });
+
             // Update existing verification request to pending
             verification.idProofUrl = fileUrl;
             verification.flatId = flatId || undefined;
@@ -245,8 +297,8 @@ export const identityVerification = async (req: Request, res: Response): Promise
         user.isVerified = false;
         await user.save();
 
-        return res.status(200).json({ 
-            message: "Identity verification request submitted successfully. Status is now pending administrator approval.", 
+        return res.status(200).json({
+            message: "Identity verification request submitted successfully. Status is now pending administrator approval.",
             verification,
             user
         });
@@ -259,7 +311,9 @@ export const identityVerification = async (req: Request, res: Response): Promise
 export const getProfile = async (req: Request, res: Response): Promise<any> => {
     try {
         const user = await User.findById(req.userId);
-        const verification = await Verification.findOne({ userId: req.userId, type: "identity" }).populate("flatId", "flatNo status isApproved");
+        const verification = await Verification.findOne({ userId: req.userId, type: "identity" })
+            .sort({ createdAt: -1 })
+            .populate("flatId", "flatNo status isApproved");
         return res.status(200).json({ message: "Profile fetched successfully", user, verification });
     } catch (error: any) {
         console.error("Error in getProfile:", error);

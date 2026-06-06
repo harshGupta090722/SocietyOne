@@ -1,0 +1,28 @@
+Here is a consolidated, clean checklist of all the production-ready improvements we discussed to take Tenantly to the next level.
+
+Security & Authentication
+
+PostgreSQL Migration: Move from MongoDB to PostgreSQL. Utilize foreign key constraints (ON DELETE RESTRICT) to prevent accidental deletion of properties with active leases, and implement UUIDs instead of sequential IDs to prevent URL scraping.
+Invisible CAPTCHA: Integrate Cloudflare Turnstile or Google reCAPTCHA v3 into login and registration forms to stop bot spam without disrupting the user experience.
+Cryptographic Password Reset: Build a secure "Forgot Password" system that generates cryptographically secure random tokens, hashes them (SHA-256) before storing them in a password_resets table, and enforces a strict 15-minute expiration window.
+Role-Based Access Control (RBAC): Implement strict backend middleware using JWT or session cookies to completely isolate Admin, Landlord, and Tenant endpoints.
+
+AI & Document Verification
+
+Asynchronous AI OCR Pipeline: Use AWS Textract or Google Cloud Vision API to programmatically extract text from uploaded IDs or lease agreements in a background worker (e.g., BullMQ or Celery).
+Fuzzy Name Matching: Use string-similarity algorithms in the backend to cross-reference the name extracted by the AI against the user's registered name, presenting a "Match Confidence %" to the Admin.
+Secure Document Vault: Store sensitive identity documents in private AWS S3 buckets and render them securely on the frontend using short-lived, temporary Presigned URLs.
+Government Sandbox Alternative (Optional): Integrate a sandboxed OAuth 2.0 flow simulating DigiLocker or a KYC API provider to fetch pre-verified user credentials via backend webhooks.
+
+Automated Financials & Billing
+
+Payment Gateway Sandbox: Integrate a simulated checkout flow using Stripe or Razorpay so tenants can pay rent digitally instead of relying solely on manual screenshots.
+Automated Cron Jobs: Set up an automated background task that executes on the 1st of every month to loop through occupied apartments, generate rent invoices, email PDFs via SendGrid, and update the payment status to "Unpaid".
+File Type Validation: For cash/wire manual screenshot backups, implement server-side file-type validation to ensure uploaded files are genuine images/PDFs and not empty dummy files.
+
+DevOps, Reliability, & Professional UX
+
+CI/CD Pipeline: Build a GitHub Actions workflow that runs your tests automatically on every code push and deploys the application inside Docker containers to platforms like Render, AWS, or Railway.
+Automated Audit Logging: Create an unalterable database log table that records a permanent audit trail of crucial actions (e.g., "Admin [ID] approved Landlord [ID] claim on Flat [ID] at [Timestamp]").
+Real-Time Notifications: Integrate WebSockets (Socket.io) to send instant alerts when a lease is approved or a payment is rejected, removing the need for page refreshes.
+Data Analytics Dashboards: Add charting libraries (like Recharts) to the Landlord dashboard to visually track monthly income trends and occupancy rates.

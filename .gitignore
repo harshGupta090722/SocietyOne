@@ -1,0 +1,5 @@
+# SSH Keys
+*.pem
+SocietyOne.pem
+
+futureChanges.txt

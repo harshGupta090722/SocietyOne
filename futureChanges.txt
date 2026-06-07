@@ -26,3 +26,10 @@ CI/CD Pipeline: Build a GitHub Actions workflow that runs your tests automatical
 Automated Audit Logging: Create an unalterable database log table that records a permanent audit trail of crucial actions (e.g., "Admin [ID] approved Landlord [ID] claim on Flat [ID] at [Timestamp]").
 Real-Time Notifications: Integrate WebSockets (Socket.io) to send instant alerts when a lease is approved or a payment is rejected, removing the need for page refreshes.
 Data Analytics Dashboards: Add charting libraries (like Recharts) to the Landlord dashboard to visually track monthly income trends and occupancy rates.
+
+
+
+
+Public IPv4 address
+
+54.226.139.95

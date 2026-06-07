@@ -46,27 +46,29 @@ Tenantly is a modern, premium full-stack Residential Property Management platfor
 ## 📦 Getting Started
 
 ### 📂 Directory Structure
-- `rent-tracker-frontend/`: React + Vite application
-- `rent-tracker-backend/`: Node + Express + TypeScript API
+- `frontend/`: React + Vite application
+- `backend/`: Node + Express + TypeScript API
 
-### 🔧 Installation
+### 🔧 Local Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/harshGupta090722/Tenantly.git
-   cd rent-tracker
+   git clone https://github.com/harshGupta090722/SocietyOne.git
+   cd SocietyOne
    ```
 
 2. **Setup Backend:**
    ```bash
-   cd rent-tracker-backend
+   cd backend
    npm install
    ```
-   Create a `.env` file in `rent-tracker-backend/` with the following:
+   Create a `.env` file in `backend/` with the following:
    ```env
    MONGO_URL=your_mongodb_connection_string
-   PORT=5000
+   PORT=4000
+   LANDLORD_SECRET_KEY=your_jwt_secret_key
    TENANT_SECRET_KEY=your_jwt_secret_key
+   ADMIN_SECRET_KEY=your_jwt_secret_key
    ```
    Start the development server:
    ```bash
@@ -75,13 +77,33 @@ Tenantly is a modern, premium full-stack Residential Property Management platfor
 
 3. **Setup Frontend:**
    ```bash
-   cd ../rent-tracker-frontend
+   cd ../frontend
    npm install
    ```
    Start the Vite frontend development server:
    ```bash
    npm run dev
    ```
+
+---
+
+## ☁️ Deployment Architecture (CI/CD)
+
+SocietyOne uses a fully automated CI/CD pipeline using **GitHub Actions**, deploying to **AWS EC2** and **Vercel**.
+
+### Backend (AWS EC2 + Docker)
+- **Containerized:** The Node.js backend is compiled and packaged into a lean Docker image using a multi-stage `Dockerfile`.
+- **Hosting:** Hosted on an AWS EC2 `t2.micro` Ubuntu instance.
+- **Reverse Proxy & SSL:** Nginx is configured as a reverse proxy, securing the backend with a Let's Encrypt SSL certificate (via DuckDNS).
+- **CI/CD Pipeline (`backend-aws.yml`):** Every push to the `main` branch affecting the `backend/` directory triggers a GitHub Action that:
+  1. Checks TypeScript compilation.
+  2. SSHs into the EC2 instance.
+  3. Pulls the latest code, builds a new Docker image, and automatically restarts the container with zero downtime.
+
+### Frontend (Vercel)
+- **Hosting:** The React frontend is deployed globally via Vercel's Edge Network.
+- **Environment:** The frontend communicates with the secure backend via the `VITE_API_URL` environment variable.
+- **CI/CD Pipeline (`frontend-vercel.yml`):** Every push to the `main` branch affecting the `frontend/` directory triggers an automatic production build and deployment to Vercel. Pull requests generate preview environments automatically.
 
 ---
 
@@ -94,4 +116,4 @@ We are completely open to collaborations! If you would like to contribute:
 4. Push to the branch (`git push origin feature/amazing-feature`).
 5. Open a **Pull Request**.
 
-If you have architectural suggestions or recommended changes regarding state management, verification logic, or database design, please open an issue or reach out directly! 
+If you have architectural suggestions or recommended changes regarding state management, verification logic, or database design, please open an issue or reach out directly!

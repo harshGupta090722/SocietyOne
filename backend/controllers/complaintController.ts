@@ -198,7 +198,7 @@ export const getReceivedComplaints = async (req: Request, res: Response): Promis
                 isNotice: { $ne: true },
                 $or: [
                     { respondentId: userId },
-                    { targetRole: userRole, respondentId: null }
+                    { targetRole: userRole as any, respondentId: null }
                 ]
             };
         }
@@ -241,7 +241,7 @@ export const getNotifications = async (req: Request, res: Response): Promise<any
             isNotice: true,
             $or: [
                 { respondentId: userId },
-                { targetRole: userRole, respondentId: null }
+                { targetRole: userRole as any, respondentId: null }
             ]
         };
 

@@ -30,6 +30,6 @@ Data Analytics Dashboards: Add charting libraries (like Recharts) to the Landlor
 
 
 
-Public IPv4 address
+Permanent Static IP
 
-54.226.139.95
+52.4.193.16

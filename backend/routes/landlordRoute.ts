@@ -12,7 +12,8 @@ import {
     getProperties,
     getProfile,
     identityVerification,
-    getDashboard
+    getDashboard,
+    getOwnershipRequests
 } from "../controllers/landlordController.js";
 
 const landlordRouter = express.Router();
@@ -25,6 +26,7 @@ landlordRouter.get("/leases", viewLeases);
 landlordRouter.get("/payments", viewPayments);
 landlordRouter.get("/dashboard", getDashboard);
 landlordRouter.get("/properties", getProperties);
+landlordRouter.get("/ownership-requests", getOwnershipRequests);
 landlordRouter.post("/addproperty", upload.single("document"), addProperty);
 landlordRouter.post("/payments/:paymentId/status", updatePaymentStatus);
 landlordRouter.post("/documents", upload.single("document"), uploadDocuments);

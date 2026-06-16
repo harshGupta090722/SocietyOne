@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Check, X, Clock, AlertCircle } from 'lucide-react';
 import api from '../../api';
+import { getUploadUrl } from '../../utils/fileUrl';
 
 interface Payment {
   _id: string;
@@ -20,6 +21,8 @@ function Approvals() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const getScreenshotUrl = (path: string) => getUploadUrl(path);
 
   useEffect(() => {
     fetchPayments();
@@ -95,7 +98,7 @@ function Approvals() {
                     onClick={() => setSelectedImage(payment.screenshotURL)}
                   >
                     {payment.screenshotURL ? (
-                      <img src={`http://localhost:5000${payment.screenshotURL}`} alt="Receipt" className="h-full w-full object-cover" />
+                      <img src={getScreenshotUrl(payment.screenshotURL)} alt="Receipt" className="h-full w-full object-cover" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-xs text-slate-400">No Image</div>
                     )}
@@ -190,7 +193,7 @@ function Approvals() {
             >
               <X className="w-6 h-6" />
             </button>
-            <img src={`http://localhost:5000${selectedImage}`} alt="Full receipt" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" />
+            <img src={getScreenshotUrl(selectedImage)} alt="Full receipt" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" />
           </div>
         </div>
       )}

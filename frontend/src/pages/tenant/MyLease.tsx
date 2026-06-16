@@ -5,7 +5,7 @@ import {
   Calendar, 
   Building, 
   User, 
-  DollarSign, 
+  IndianRupee, 
   Clock, 
   Key,
   ShieldCheck,
@@ -152,7 +152,7 @@ function MyLease() {
               <div className="space-y-1 border-t border-slate-50 pt-4">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Monthly Rent Rate</span>
                 <div className="flex items-center gap-1.5 text-blue-600 font-extrabold text-lg">
-                  <DollarSign className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <IndianRupee className="w-4 h-4 text-blue-500 flex-shrink-0" />
                   <span>₹{lease.monthlyRent?.toLocaleString()}/month</span>
                 </div>
               </div>

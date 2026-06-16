@@ -21,6 +21,7 @@ function TenantPayments() {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const hasPendingPayment = payments.some(p => p.status === 'pending');
+  const hasApprovedPayment = payments.some(p => p.status === 'approved');
 
   useEffect(() => {
     fetchPayments();
@@ -113,6 +114,18 @@ function TenantPayments() {
                 <div className="w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-700 flex items-start">
                   <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
                   <span>Please wait for your landlord to approve or reject the pending payment before submitting a new one.</span>
+                </div>
+              </div>
+            ) : !hasApprovedPayment ? (
+              <div className="p-6 flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
+                  <CreditCard className="w-8 h-8 text-slate-400" />
+                </div>
+                <div>
+                  <h4 className="text-base font-semibold text-slate-800">No Active Lease</h4>
+                  <p className="text-sm text-slate-500 mt-1">
+                  Lease a flat first to make payments from here.
+                  </p>
                 </div>
               </div>
             ) : (

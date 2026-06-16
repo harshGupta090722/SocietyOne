@@ -101,6 +101,11 @@ export const createComplaint = async (req: Request, res: Response): Promise<any>
             if (activeLease) {
                 respondentId = activeLease.landlordId;
                 flatId = activeLease.flatId;
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: "You do not have an active lease with any landlord."
+                });
             }
         }
 
@@ -237,8 +242,15 @@ export const getNotifications = async (req: Request, res: Response): Promise<any
             });
         }
 
+        // Only show notices created after the user's account was created, so
+        // newly registered users don't see broadcast notices from before they joined.
+        // The account creation time is derived from the user's ObjectId, which
+        // embeds a creation timestamp (reliable even without schema timestamps).
+        const accountCreatedAt = new mongoose.Types.ObjectId(userId as string).getTimestamp();
+
         const filter = {
             isNotice: true,
+            createdAt: { $gte: accountCreatedAt },
             $or: [
                 { respondentId: userId },
                 { targetRole: userRole as any, respondentId: null }

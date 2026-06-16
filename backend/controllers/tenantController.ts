@@ -98,7 +98,7 @@ export const makePayment = async (req: Request, res: Response): Promise<any> => 
             });
         }
 
-        const { amount, screenshotURL } = req.body;
+        const { amount, screenshotURL, month } = req.body;
 
         if (!amount || !screenshotURL) {
             return res.status(400).json({
@@ -116,6 +116,7 @@ export const makePayment = async (req: Request, res: Response): Promise<any> => 
             tenantId: req.userId,
             amount: Number(amount),
             screenshotURL,
+            month: month ? new Date(month) : new Date(),
             status: "pending"
         });
 
@@ -313,6 +314,7 @@ export const requestRent = async (req: Request, res: Response): Promise<any> => 
             tenantId,
             amount: depositAmount + rentAmount, // Security Deposit + First month rent
             screenshotURL: fileUrl,
+            month: new Date(),
             status: "pending"
         });
         await payment.save();

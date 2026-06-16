@@ -1,16 +1,38 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import api from '../../api';
+import { getUploadUrl } from '../../utils/fileUrl';
 import { 
   Building, 
-  DollarSign, 
+  IndianRupee, 
   Upload, 
   CheckCircle2, 
   AlertTriangle,
   Loader2,
   FileText,
   Home,
-  X
+  X,
+  History,
+  Eye,
+  Clock,
+  XCircle
 } from 'lucide-react';
+
+interface OwnershipRequest {
+  _id: string;
+  flatId?: {
+    _id: string;
+    flatNo: string;
+    status: string;
+    isApproved: string;
+    monthlyRent?: string;
+    securityDeposit?: string;
+  } | null;
+  idProofUrl: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 function AddProperty() {
   const [flatNo, setFlatNo] = useState('');
@@ -22,6 +44,39 @@ function AddProperty() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const [requests, setRequests] = useState<OwnershipRequest[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const fetchRequests = async () => {
+    try {
+      setRequestsLoading(true);
+      const res = await api.get('/landlord/ownership-requests');
+      if (res.data && res.data.requests) {
+        setRequests(res.data.requests);
+      }
+    } catch (err) {
+      console.error('Error fetching ownership requests:', err);
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const openDocument = (path: string) => {
+    const url = getUploadUrl(path);
+    if (!url) return;
+    if (url.toLowerCase().endsWith('.pdf')) {
+      // PDFs open cleanly in a new browser tab
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      setLightboxUrl(url);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -61,6 +116,7 @@ function AddProperty() {
         setSecurityDeposit('');
         setDocumentFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
+        fetchRequests();
       }
     } catch (err: any) {
       console.error('Error submitting property claim:', err);
@@ -124,7 +180,7 @@ function AddProperty() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <DollarSign className="w-5 h-5 text-slate-400" />
+                  <IndianRupee className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
                   type="number"
@@ -145,7 +201,7 @@ function AddProperty() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <DollarSign className="w-5 h-5 text-slate-400" />
+                  <IndianRupee className="w-5 h-5 text-slate-400" />
                 </div>
                 <input
                   type="number"
@@ -224,6 +280,116 @@ function AddProperty() {
           </div>
         </form>
       </div>
+
+      {/* Previous Requests */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <History className="w-5 h-5 text-slate-400" />
+          <h3 className="text-lg font-bold text-slate-800">Previous Requests</h3>
+        </div>
+        <p className="text-sm text-slate-500 -mt-2">Track the status of all ownership claims you have submitted.</p>
+
+        {requestsLoading ? (
+          <div className="flex items-center justify-center py-10 text-slate-500 gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span className="text-sm font-medium">Loading your requests...</span>
+          </div>
+        ) : requests.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+            <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <FileText className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-semibold text-slate-700">No previous requests</p>
+            <p className="text-xs text-slate-400 mt-1">Your submitted ownership claims will appear here.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {requests.map((req) => {
+              const statusStyles =
+                req.status === 'approved'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : req.status === 'rejected'
+                  ? 'bg-rose-100 text-rose-800'
+                  : 'bg-amber-100 text-amber-800';
+
+              return (
+                <div
+                  key={req._id}
+                  className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                      <Home className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">
+                        Flat {req.flatId?.flatNo || 'N/A'}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1">
+                        <span>Rent: ₹{Number(req.flatId?.monthlyRent || 0).toLocaleString()}</span>
+                        <span className="text-slate-300">•</span>
+                        <span>Deposit: ₹{Number(req.flatId?.securityDeposit || 0).toLocaleString()}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Submitted {new Date(req.updatedAt || req.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                      {req.status === 'rejected' && req.rejectionReason && (
+                        <p className="text-xs text-rose-600 mt-1.5 max-w-md">
+                          <span className="font-semibold">Reason:</span> {req.rejectionReason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 sm:flex-col sm:items-end">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusStyles}`}
+                    >
+                      {req.status === 'approved' && <CheckCircle2 className="w-3 h-3" />}
+                      {req.status === 'rejected' && <XCircle className="w-3 h-3" />}
+                      {req.status === 'pending' && <Clock className="w-3 h-3" />}
+                      {req.status}
+                    </span>
+                    {req.idProofUrl && (
+                      <button
+                        type="button"
+                        onClick={() => openDocument(req.idProofUrl)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Document
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Document Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <div className="relative max-w-4xl w-full flex items-center justify-center bg-white/5 p-4 rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+            <button
+              onClick={() => setLightboxUrl(null)}
+              className="absolute top-4 right-4 bg-slate-900/80 text-white rounded-full p-2 border border-white/20 hover:bg-slate-800 transition-colors z-10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={lightboxUrl}
+              alt="Ownership document"
+              className="max-h-[85vh] max-w-full rounded-lg object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Home, DollarSign, Filter, RefreshCw } from 'lucide-react';
+import { Search, Home, IndianRupee, Filter, RefreshCw } from 'lucide-react';
 import api from '../../api';
 
 interface Flat {

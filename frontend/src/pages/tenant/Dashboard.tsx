@@ -175,7 +175,10 @@ function TenantDashboard() {
              <h3 className="text-lg font-bold mb-2">Need to pay rent?</h3>
              <p className="text-sm text-slate-300">Upload your payment screenshot to clear your outstanding dues.</p>
           </div>
-          <button className="mt-6 w-full bg-[#3b82f6] hover:bg-blue-600 text-white font-medium py-2.5 px-4 rounded-md transition-colors">
+          <button 
+            className="mt-6 w-full bg-[#3b82f6] hover:bg-blue-600 text-white font-medium py-2.5 px-4 rounded-md transition-colors" 
+            onClick={() => navigate('/tenant/payments')}
+          >
             Pay Rent Now
           </button>
         </div>

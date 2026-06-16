@@ -91,7 +91,6 @@ function SidebarLayout() {
     { name: 'Payments', path: '/tenant/payments', icon: CreditCard },
     { name: 'Complaints', path: '/tenant/complaints', icon: MessageSquareWarning },
     { name: 'Notifications', path: '/tenant/notifications', icon: Bell },
-    { name: 'Documents', path: '/tenant/documents', icon: FolderOpen },
     { name: 'Profile', path: '/tenant/profile', icon: Settings },
   ];
 

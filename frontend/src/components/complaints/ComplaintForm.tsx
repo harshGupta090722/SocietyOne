@@ -7,6 +7,8 @@ interface TargetOption {
   value: string;
   category: string;
   requiresFlatNo?: boolean;
+  disabled?: boolean;
+  disabledMessage?: string;
 }
 
 interface ComplaintFormProps {
@@ -126,11 +128,16 @@ function ComplaintForm({ targets, onSuccess }: ComplaintFormProps) {
         >
           <option value="">Select recipient...</option>
           {targets.map((t) => (
-            <option key={t.value} value={t.value}>
+            <option key={t.value} value={t.value} disabled={t.disabled}>
               {t.label}
             </option>
           ))}
         </select>
+        {targets.some(t => t.disabled) && (
+          <p className="text-xs text-red-500 mt-1 font-medium">
+            * {targets.find(t => t.disabled)?.disabledMessage}
+          </p>
+        )}
       </div>
 
       {/* Flat Number (Conditional) */}

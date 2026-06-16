@@ -3,7 +3,7 @@ import {
   Building, 
   Home, 
   AlertTriangle, 
-  DollarSign, 
+  IndianRupee, 
   Users, 
   CheckSquare,
   Loader2
@@ -86,7 +86,7 @@ function LandlordDashboard() {
     {
       title: 'Monthly Income',
       value: `₹${stats?.monthlyIncome?.toLocaleString() || 0}`,
-      icon: DollarSign,
+      icon: IndianRupee,
       color: 'bg-teal-50 text-teal-600 border-teal-100',
     },
     {
@@ -135,7 +135,7 @@ function LandlordDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-64 flex flex-col justify-center items-center text-slate-400">
-          <DollarSign className="w-10 h-10 text-slate-300 mb-2" />
+          <IndianRupee className="w-10 h-10 text-slate-300 mb-2" />
           <p className="font-semibold text-slate-500">Finances Overview Chart (Coming Soon)</p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-64 flex flex-col justify-center items-center text-slate-400">

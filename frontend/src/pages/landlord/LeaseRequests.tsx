@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api';
+import { getUploadUrl } from '../../utils/fileUrl';
 import { 
   CheckSquare, 
   Check, 
@@ -7,7 +8,7 @@ import {
   User, 
   AlertTriangle,
   Loader2,
-  DollarSign,
+  IndianRupee,
   Building,
   Image as ImageIcon,
   ExternalLink,
@@ -41,7 +42,7 @@ interface PaymentRecord {
   amount: number;
   status: 'pending' | 'approved' | 'rejected';
   paymentDate: string;
-  documentUrl?: string;
+  screenshotURL?: string;
   rentMonth?: string;
 }
 
@@ -138,11 +139,8 @@ function LeaseRequests() {
         ) : (
           <div className="grid grid-cols-1 gap-6">
             {activeRequests.map((request) => {
-              const fileUrl = request.documentUrl 
-                ? request.documentUrl.startsWith('http') 
-                  ? request.documentUrl 
-                  : `${api.defaults.baseURL || ''}${request.documentUrl}`
-                : '';
+              const fileUrl = getUploadUrl(request.screenshotURL || '');
+              const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
 
               return (
                 <div 
@@ -172,7 +170,7 @@ function LeaseRequests() {
                       </div>
                       <div>
                         <span className="text-xs text-slate-500 flex items-center gap-1 font-semibold">
-                          <DollarSign className="w-3.5 h-3.5" /> Security Deposit Paid
+                          <IndianRupee className="w-3.5 h-3.5" /> Security Deposit Paid
                         </span>
                         <p className="font-bold text-emerald-600 mt-1">₹{request.amount.toLocaleString()}</p>
                       </div>
@@ -191,17 +189,27 @@ function LeaseRequests() {
                   <div className="flex flex-col justify-between space-y-4">
                     <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 flex flex-col items-center justify-center h-32 relative group overflow-hidden">
                       {fileUrl ? (
-                        <>
-                          <img 
-                            src={fileUrl} 
-                            alt="Payment receipt" 
-                            className="object-cover h-full w-full rounded-lg cursor-zoom-in"
-                            onClick={() => setPreviewImage(fileUrl)}
-                          />
-                          <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all cursor-zoom-in rounded-lg" onClick={() => setPreviewImage(fileUrl)}>
-                            <ExternalLink className="w-5 h-5 text-white" />
+                        isPdf ? (
+                          <div 
+                            className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-slate-100 transition-colors rounded-lg"
+                            onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
+                          >
+                            <FileText className="w-8 h-8 text-rose-500 mb-2" />
+                            <span className="text-[10px] font-bold text-slate-600">View PDF Receipt</span>
                           </div>
-                        </>
+                        ) : (
+                          <>
+                            <img 
+                              src={fileUrl} 
+                              alt="Payment receipt" 
+                              className="object-cover h-full w-full rounded-lg cursor-zoom-in"
+                              onClick={() => setPreviewImage(fileUrl)}
+                            />
+                            <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all cursor-zoom-in rounded-lg" onClick={() => setPreviewImage(fileUrl)}>
+                              <ExternalLink className="w-5 h-5 text-white" />
+                            </div>
+                          </>
+                        )
                       ) : (
                         <div className="text-center text-slate-400">
                           <ImageIcon className="w-8 h-8 mx-auto mb-1 text-slate-300" />

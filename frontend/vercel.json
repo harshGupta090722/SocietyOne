@@ -3,6 +3,10 @@
     {
       "source": "/api/:match*",
       "destination": "http://52.4.193.16:4000/api/:match*"
+    },
+    {
+      "source": "/uploads/:match*",
+      "destination": "http://52.4.193.16:4000/uploads/:match*"
     }
   ]
 }

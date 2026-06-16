@@ -197,10 +197,10 @@ export const updatePaymentStatus = async (req: Request, res: Response): Promise<
         } else if (payment && status === "rejected") {
             // Reject the pending lease — everything goes back to normal
             const lease = await Lease.findById(payment.leaseId);
+            
             if (lease && lease.status === "pending") {
-                lease.status = "rejected";
-                await lease.save();
-                // Flat stays vacant, no changes needed
+                await Lease.findByIdAndDelete(lease._id);
+                // Flat stays vacant, no connection is established
             }
         }
 
@@ -330,6 +330,23 @@ export const getProfile = async (req: Request, res: Response): Promise<any> => {
     } catch (error: any) {
         console.error("Error in getProfile:", error);
         return res.status(500).json({ message: "Error fetching profile" });
+    }
+};
+
+export const getOwnershipRequests = async (req: Request, res: Response): Promise<any> => {
+    try {
+        const requests = await Verification.find({ userId: req.userId, type: "ownership" })
+            .populate("flatId", "flatNo status isApproved monthlyRent securityDeposit")
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            message: "Ownership requests fetched successfully",
+            requests
+        });
+    } catch (error: any) {
+        console.error("Error in getOwnershipRequests:", error);
+        return res.status(500).json({ message: "Error fetching ownership requests" });
     }
 };
 

@@ -336,6 +336,7 @@ function Landing() {
                 <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
+            
           </div>
         </div>
       </section>

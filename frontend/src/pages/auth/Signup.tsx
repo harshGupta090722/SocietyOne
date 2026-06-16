@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Building, Lock, Mail, User, Phone, AlertCircle } from 'lucide-react';
+import { Building, Lock, Mail, User, Phone, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import api from '../../api';
 
 function Signup() {
@@ -11,19 +11,47 @@ function Signup() {
     email: '',
     password: '',
     phone: '',
-    role: 'tenant' as 'tenant' | 'landlord' | 'admin'
+    role: 'tenant' as 'tenant' | 'landlord'
   });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    // Clear the inline error for this field as the user corrects it
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+  };
+
+  const validate = () => {
+    const errors: { [key: string]: string } = {};
+
+    if (!/^\d{10}$/.test(formData.phone.trim())) {
+      errors.phone = 'Phone number must be exactly 10 digits.';
+    }
+
+    return errors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
     setIsLoading(true);
 
     try {
@@ -58,7 +86,7 @@ function Signup() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Role Selection */}
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-2 gap-2 mb-4">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: 'tenant' })}
@@ -79,16 +107,6 @@ function Signup() {
               >
                 Landlord
               </button>
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, role: 'admin' })}
-                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${formData.role === 'admin'
-                  ? 'bg-[#faf5ff] border-[#d8b4fe] text-[#6b21a8]'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-              >
-                Admin
-              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -105,7 +123,7 @@ function Signup() {
                     value={formData.firstName}
                     onChange={handleChange}
                     className="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] sm:text-sm"
-                    placeholder="John"
+                    placeholder="Harsh"
                   />
                 </div>
               </div>
@@ -122,7 +140,7 @@ function Signup() {
                     value={formData.lastName}
                     onChange={handleChange}
                     className="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] sm:text-sm"
-                    placeholder="Doe"
+                    placeholder="Gupta"
                   />
                 </div>
               </div>
@@ -153,15 +171,25 @@ function Signup() {
                   <Phone className="h-4 w-4 text-slate-400" />
                 </div>
                 <input
-                  type="text"
+                  type="tel"
                   name="phone"
                   required
+                  inputMode="numeric"
+                  maxLength={10}
                   value={formData.phone}
                   onChange={handleChange}
-                  className="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] sm:text-sm"
-                  placeholder="(555) 123-4567"
+                  className={`block w-full pl-9 pr-3 py-2 border rounded-md shadow-sm sm:text-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] ${
+                    fieldErrors.phone ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-slate-300'
+                  }`}
+                  placeholder="10-digit mobile number"
                 />
               </div>
+              {fieldErrors.phone && (
+                <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  {fieldErrors.phone}
+                </p>
+              )}
             </div>
 
             <div>
@@ -171,14 +199,22 @@ function Signup() {
                   <Lock className="h-4 w-4 text-slate-400" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] sm:text-sm"
+                  className="block w-full pl-9 pr-10 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] sm:text-sm"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 

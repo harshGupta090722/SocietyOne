@@ -26,8 +26,7 @@ const UserSchema: Schema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
-        minlength: 8
+        required: true
     },
     role: {
         type: String,
@@ -47,5 +46,8 @@ const UserSchema: Schema = new mongoose.Schema({
         }
     }
 });
+
+// Ensure there can be only one user with the 'admin' role in the database.
+UserSchema.index({ role: 1 }, { unique: true, partialFilterExpression: { role: "admin" } });
 
 export const User = mongoose.model<IUser>("User", UserSchema);

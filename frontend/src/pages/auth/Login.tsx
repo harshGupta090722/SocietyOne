@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Building, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Building, Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import api from '../../api';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'landlord' | 'tenant' | 'admin'>('tenant');
+  const [role, setRole] = useState<'landlord' | 'tenant'>('tenant');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Role Selection */}
-            <div className="grid grid-cols-3 gap-2 mb-6">
+            <div className="grid grid-cols-2 gap-2 mb-6">
               <button
                 type="button"
                 onClick={() => setRole('tenant')}
@@ -83,16 +84,6 @@ function Login() {
                   }`}
               >
                 Landlord
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('admin')}
-                className={`py-2 px-1 text-center text-xs font-semibold rounded-md border transition-colors ${role === 'admin'
-                  ? 'bg-[#faf5ff] border-[#d8b4fe] text-[#6b21a8]'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-              >
-                Admin
               </button>
             </div>
 
@@ -120,13 +111,21 @@ function Login() {
                   <Lock className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] sm:text-sm"
+                  className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6] sm:text-sm"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -144,9 +143,9 @@ function Login() {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-[#3b82f6] hover:text-[#2563eb]">
+                <Link to="/forgot-password" className="font-medium text-[#3b82f6] hover:text-[#2563eb]">
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
 

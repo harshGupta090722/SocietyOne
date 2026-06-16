@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FolderOpen, FileText, Download, ShieldCheck, Home, RefreshCw, Eye } from 'lucide-react';
 import api from '../../api';
+import { getUploadUrl } from '../../utils/fileUrl';
 
 interface Document {
   _id: string;
@@ -55,11 +56,7 @@ function Documents() {
     fetchDocuments();
   }, []);
 
-  const getFullUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return `http://localhost:4000/${path.replace(/\\/g, '/')}`;
-  };
+  const getFullUrl = (path: string) => getUploadUrl(path);
 
   const handleView = (path: string) => {
     const url = getFullUrl(path);

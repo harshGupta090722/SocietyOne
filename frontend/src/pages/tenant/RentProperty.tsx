@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   Image as ImageIcon,
   Loader2,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import api from '../../api';
 
@@ -27,6 +29,140 @@ interface Flat {
     lastName: string;
     phone: string;
   };
+  images?: {
+    bedroom: string;
+    hall: string;
+    kitchen: string;
+    bathroom: string;
+  };
+}
+
+function FlatCard({ 
+  flat, 
+  hasActiveLease, 
+  hasPendingLease, 
+  onSelectFlat, 
+  setLightboxImage 
+}: { 
+  flat: Flat, 
+  hasActiveLease: boolean, 
+  hasPendingLease: boolean, 
+  onSelectFlat: (flat: Flat) => void,
+  setLightboxImage: (url: string) => void
+}) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  const images = flat.images ? [
+    { url: flat.images.bedroom, label: 'Bedroom' },
+    { url: flat.images.hall, label: 'Hall' },
+    { url: flat.images.kitchen, label: 'Kitchen' },
+    { url: flat.images.bathroom, label: 'Bathroom' }
+  ] : [];
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+  
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between overflow-hidden">
+      {/* Image Carousel */}
+      {images.length > 0 && (
+        <div className="relative h-48 sm:h-56 bg-slate-100 overflow-hidden group/carousel cursor-pointer" onClick={() => setLightboxImage(images[currentImageIndex].url)}>
+          <img 
+            src={images[currentImageIndex].url} 
+            alt={images[currentImageIndex].label} 
+            className="w-full h-full object-cover transition-transform duration-500 group-hover/carousel:scale-105"
+          />
+          <div className="absolute inset-0 bg-slate-900/10 transition-colors duration-300" />
+          
+          <div className="absolute top-3 left-3 bg-slate-900/70 backdrop-blur-sm text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
+            {images[currentImageIndex].label}
+          </div>
+
+          <div className="absolute top-3 right-3 bg-slate-900/70 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">
+            {currentImageIndex + 1} / {images.length}
+          </div>
+
+          <button 
+            onClick={handlePrev} 
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full shadow-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 transform -translate-x-2 group-hover/carousel:translate-x-0"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
+          <button 
+            onClick={handleNext} 
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full shadow-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 transform translate-x-2 group-hover/carousel:translate-x-0"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      <div className="p-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+              <Building className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-slate-800 text-lg">Flat {flat.flatNo}</span>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 uppercase">
+            {flat.status}
+          </span>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-3.5 pt-2">
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <User className="w-4 h-4 text-slate-400" />
+            <span>
+              Owner:{' '}
+              <span className="font-semibold text-slate-800">
+                {flat.ownerId?.firstName} {flat.ownerId?.lastName}
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <CreditCard className="w-4 h-4 text-slate-400" />
+            <span>
+              Rent:{' '}
+              <span className="font-bold text-slate-800">
+                ₹{parseFloat(flat.monthlyRent || '0').toLocaleString()}/mo
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <ShieldCheck className="w-4 h-4 text-slate-400" />
+            <span>
+              Security Deposit:{' '}
+              <span className="font-bold text-slate-800">
+                ₹{parseFloat(flat.securityDeposit || '0').toLocaleString()}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="p-6 pt-0">
+        <button
+          onClick={() => onSelectFlat(flat)}
+          disabled={hasActiveLease || hasPendingLease}
+          className="w-full py-2.5 px-4 bg-[#1e293b] hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
+        >
+          <QrCode className="w-4 h-4" /> Request Property
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function RentProperty() {
@@ -42,6 +178,7 @@ function RentProperty() {
   const [submitError, setSubmitError] = useState('');
   const [hasActiveLease, setHasActiveLease] = useState(false);
   const [hasPendingLease, setHasPendingLease] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   useEffect(() => {
     const initialize = async () => {
@@ -176,73 +313,19 @@ function RentProperty() {
       ) : flats.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {flats.map((flat) => (
-            <div
-              key={flat._id}
-              className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="p-6 space-y-4">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                      <Building className="w-5 h-5" />
-                    </div>
-                    <span className="font-bold text-slate-800 text-lg">Flat {flat.flatNo}</span>
-                  </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 uppercase">
-                    {flat.status}
-                  </span>
-                </div>
-
-                {/* Details */}
-                <div className="space-y-3.5 pt-2">
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <User className="w-4 h-4 text-slate-400" />
-                    <span>
-                      Owner:{' '}
-                      <span className="font-semibold text-slate-800">
-                        {flat.ownerId?.firstName} {flat.ownerId?.lastName}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <CreditCard className="w-4 h-4 text-slate-400" />
-                    <span>
-                      Rent:{' '}
-                      <span className="font-bold text-slate-800">
-                        ₹{parseFloat(flat.monthlyRent || '0').toLocaleString()}/mo
-                      </span>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <ShieldCheck className="w-4 h-4 text-slate-400" />
-                    <span>
-                      Security Deposit:{' '}
-                      <span className="font-bold text-slate-800">
-                        ₹{parseFloat(flat.securityDeposit || '0').toLocaleString()}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA */}
-              <div className="p-6 pt-0">
-                <button
-                  onClick={() => {
-                    if (hasActiveLease || hasPendingLease) return;
-                    setSelectedFlat(flat);
-                    setSuccessMsg('');
-                    setSubmitError('');
-                    setSelectedFile(null);
-                  }}
-                  disabled={hasActiveLease || hasPendingLease}
-                  className="w-full py-2.5 px-4 bg-[#1e293b] hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
-                >
-                  <QrCode className="w-4 h-4" /> Request Property
-                </button>
-              </div>
-            </div>
+            <FlatCard 
+              key={flat._id} 
+              flat={flat} 
+              hasActiveLease={hasActiveLease} 
+              hasPendingLease={hasPendingLease} 
+              onSelectFlat={(f) => {
+                setSelectedFlat(f);
+                setSuccessMsg('');
+                setSubmitError('');
+                setSelectedFile(null);
+              }}
+              setLightboxImage={setLightboxImage}
+            />
           ))}
         </div>
       ) : (
@@ -388,6 +471,22 @@ function RentProperty() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {/* Lightbox Modal */}
+      {lightboxImage && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/95 p-4 sm:p-8 backdrop-blur-sm animate-fadeIn">
+          <button
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-6 right-6 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <img 
+            src={lightboxImage} 
+            alt="Expanded view" 
+            className="max-w-full max-h-full rounded-lg shadow-2xl object-contain animate-scaleIn"
+          />
         </div>
       )}
     </div>

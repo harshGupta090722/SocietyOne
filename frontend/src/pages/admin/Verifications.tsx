@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, CheckCircle2, XCircle, FileText, AlertCircle, RefreshCw, Eye } from 'lucide-react';
 import api from '../../api';
+import { getUploadUrl } from '../../utils/fileUrl';
 
 interface Verification {
   _id: string;
@@ -86,10 +87,17 @@ function Verifications() {
   };
 
   // Convert upload paths to active backend urls
-  const getProofUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return `http://localhost:4000/${path.replace(/\\/g, '/')}`;
+  const getProofUrl = (path: string) => getUploadUrl(path);
+
+  // Open the proof — PDFs in a new tab, images in the lightbox
+  const openProof = (path: string) => {
+    const url = getProofUrl(path);
+    if (!url) return;
+    if (url.toLowerCase().endsWith('.pdf')) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      setLightboxUrl(url);
+    }
   };
 
   return (
@@ -179,7 +187,7 @@ function Verifications() {
                       {v.idProofUrl ? (
                         <button
                           type="button"
-                          onClick={() => setLightboxUrl(getProofUrl(v.idProofUrl))}
+                          onClick={() => openProof(v.idProofUrl)}
                           className="flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-colors"
                         >
                           <Eye className="w-4 h-4 mr-1.5" />
@@ -300,12 +308,16 @@ function Verifications() {
               alt="Identity Proof"
               className="max-h-[85vh] max-w-full rounded-lg object-contain"
               onClick={(e) => e.stopPropagation()}
-              onError={(e) => {
-                // If backend local host fails to render, show custom icon fallbacks
-                const target = e.target as HTMLImageElement;
-                target.src = 'https://images.unsplash.com/photo-1557683316-973673baf926?w=600&auto=format&fit=crop';
-              }}
             />
+            <a
+              href={lightboxUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/80 hover:text-white underline"
+            >
+              Open in new tab
+            </a>
           </div>
         </div>
       )}

@@ -8,6 +8,12 @@ export interface IFlat extends Document {
     securityDeposit?: string;
     status: "unassigned" | "vacant" | "occupied";
     isApproved: "approved" | "pending" | "notApproved";
+    images: {
+        bedroom: string;
+        hall: string;
+        kitchen: string;
+        bathroom: string;
+    };
 }
 
 const flatSchema: Schema = new mongoose.Schema({
@@ -41,6 +47,12 @@ const flatSchema: Schema = new mongoose.Schema({
         type: String,
         enum: ["approved", "pending", "notApproved"],
         default: "notApproved"
+    },
+    images: {
+        bedroom: { type: String, required: true },
+        hall: { type: String, required: true },
+        kitchen: { type: String, required: true },
+        bathroom: { type: String, required: true }
     }
 });
 

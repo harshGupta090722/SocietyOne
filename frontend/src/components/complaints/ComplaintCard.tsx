@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Clock, User, Image as ImageIcon, CheckCircle2, Loader2 } from 'lucide-react';
 import api from '../../api';
+import { getUploadUrl } from '../../utils/fileUrl';
 
 interface ComplaintData {
   _id: string;
@@ -121,8 +122,8 @@ function ComplaintCard({ complaint, variant, onStatusUpdate, apiBaseUrl }: Compl
   // Build image URL — handle both absolute URLs and relative /uploads/ paths
   const getImageUrl = (path: string) => {
     if (path.startsWith('http')) return path;
-    const base = apiBaseUrl || import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:4000';
-    return `${base}${path}`;
+    if (apiBaseUrl) return `${apiBaseUrl}${path}`;
+    return getUploadUrl(path);
   };
 
   const isNotice = complaint.isNotice;

@@ -8,7 +8,7 @@ import ComplaintFilters from '../../components/complaints/ComplaintFilters';
 
 const LANDLORD_TARGETS = [
   { label: 'To Admin (Society Issues)', value: 'admin', category: 'society' },
-  { label: 'To Tenant (Notice / Warning)', value: 'tenant', category: 'tenant-notice' },
+  { label: 'To Tenant (Notice / Warning)', value: 'tenant', category: 'tenant-notice', requiresFlatNo: true },
 ];
 
 function LandlordComplaints() {

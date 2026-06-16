@@ -1,10 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import SidebarLayout from './layouts/SidebarLayout';
 import Landing from './pages/Landing';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
+import AdminLogin from './pages/auth/AdminLogin';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import LandlordDashboard from './pages/landlord/Dashboard';
 import TenantDirectory from './pages/landlord/TenantDirectory';
 import MyProperties from './pages/landlord/MyProperties';
@@ -39,6 +42,9 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Landlord Routes (Protected) */}
           <Route
@@ -77,8 +83,9 @@ function App() {
             <Route path="complaints" element={<TenantComplaints />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<TenantProfile />} />
-            <Route path="documents" element={<div className="p-4 bg-white rounded-lg shadow">Document Vault (Phase 3)</div>} />
-            <Route path="support" element={<div className="p-4 bg-white rounded-lg shadow">Support Center (Phase 3)</div>} />
+            
+            {/* Fallback for unknown tenant routes (including /tenant) */}
+            <Route path="*" element={<Navigate to="/tenant/dashboard" replace />} />
           </Route>
 
           {/* Admin Routes (Protected) */}

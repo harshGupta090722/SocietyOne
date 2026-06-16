@@ -19,16 +19,19 @@ function TenantComplaints() {
   const [sentFilter, setSentFilter] = useState('all');
   const [receivedFilter, setReceivedFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [flatAssigned, setFlatAssigned] = useState(true);
 
   const fetchComplaints = useCallback(async () => {
     setLoading(true);
     try {
-      const [sentRes, receivedRes] = await Promise.all([
+      const [sentRes, receivedRes, dashRes] = await Promise.all([
         api.get('/complaints/sent'),
         api.get('/complaints/received'),
+        api.get('/tenant/dashboard').catch(() => ({ data: { flatAssigned: false } })),
       ]);
       setSentComplaints(sentRes.data.data || []);
       setReceivedComplaints(receivedRes.data.data || []);
+      setFlatAssigned(dashRes.data.flatAssigned || false);
     } catch (err) {
       console.error('Error fetching complaints:', err);
     } finally {
@@ -128,7 +131,14 @@ function TenantComplaints() {
       {activeTab === 'send' && (
         <div className="space-y-6">
           {/* Complaint Form */}
-          <ComplaintForm targets={TENANT_TARGETS} onSuccess={fetchComplaints} />
+          <ComplaintForm 
+            targets={TENANT_TARGETS.map(t => 
+              t.value === 'landlord' && !flatAssigned 
+                ? { ...t, disabled: true, disabledMessage: "You don't have any landlord yet." } 
+                : t
+            )} 
+            onSuccess={fetchComplaints} 
+          />
 
           {/* My Previous Complaints */}
           <div className="space-y-4">

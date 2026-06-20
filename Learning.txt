@@ -21,3 +21,17 @@ Forgot Password flow:
 3)That end point generates a 32 char token,and creates a new entry in passwordResetModel Collection with an email,token and expiry,then sends the call sendResetPasswordEmail which sends an email to the user with the token using mailer.ts
 4)Now the user receives an email with a link which contains the token and takes user to Reset Password page
 5)User fills new paswords and confirms it,which sends request to reset-pasword endpoint-which updates the password in the DB
+
+
+->If you ever update a .env file on deployment.
+
+Whenever you change a .env file for a running Docker container, you cannot just restart it. You have to destroy the old container completely so that Docker is forced to read the file fresh.
+We can add this thing in our backend-aws.yaml also to automate this.
+
+
+->The Issue: When you deploy a React app, it is a Single Page Application with only one real file (index.html). If a user navigates directly to a custom route (like yourwebsite.com/dashboard), the server looks for a physical dashboard.html file. Since it doesn't exist, the server throws a 404 error.
+
+The Concept: You must configure your hosting provider to redirect all incoming traffic back to index.html. Once the browser loads index.html, React Router wakes up, reads the URL, and displays the correct page.
+
+The Fix (on Vercel): Add a vercel.json file to your frontend folder with a catch-all rewrite rule: "source": "/(.*)", "destination": "/index.html". This forces Vercel to always serve your React app no matter what URL the user types in.
+

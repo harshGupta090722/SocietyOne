@@ -7,6 +7,10 @@
     {
       "source": "/uploads/:match*",
       "destination": "http://52.4.193.16:4000/uploads/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

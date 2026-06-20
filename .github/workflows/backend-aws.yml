@@ -33,29 +33,44 @@ jobs:
       # Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          LANDLORD_SECRET_KEY: ${{ secrets.LANDLORD_SECRET_KEY }}
+          TENANT_SECRET_KEY: ${{ secrets.TENANT_SECRET_KEY }}
+          ADMIN_SECRET_KEY: ${{ secrets.ADMIN_SECRET_KEY }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+          envs: MONGO_URL,LANDLORD_SECRET_KEY,TENANT_SECRET_KEY,ADMIN_SECRET_KEY,SMTP_USER,SMTP_PASS,FRONTEND_URL
           script: |
             cd ~/SocietyOne
-
-            # Pull latest code
             git pull origin main
 
-            # Build and restart Docker container
             cd backend
+            
+            # Auto-generate .env file from GitHub Secrets
+            echo "PORT=4000" > .env
+            echo "MONGO_URL=$MONGO_URL" >> .env
+            echo "LANDLORD_SECRET_KEY=$LANDLORD_SECRET_KEY" >> .env
+            echo "TENANT_SECRET_KEY=$TENANT_SECRET_KEY" >> .env
+            echo "ADMIN_SECRET_KEY=$ADMIN_SECRET_KEY" >> .env
+            echo "SMTP_HOST=smtp.gmail.com" >> .env
+            echo "SMTP_PORT=587" >> .env
+            echo "SMTP_USER=$SMTP_USER" >> .env
+            echo "SMTP_PASS=$SMTP_PASS" >> .env
+            echo "FRONTEND_URL=$FRONTEND_URL" >> .env
+
+            # Build and restart Docker container
             docker build -t societyone-backend .
 
-            # Stop and remove old container (ignore errors if not running)
             docker stop societyone-backend 2>/dev/null || true
             docker rm societyone-backend 2>/dev/null || true
 
-            # Run new container with:
-            #   --restart unless-stopped  → auto-restart on crash/reboot
-            #   -v for uploads            → persist uploaded files across rebuilds
-            #   --env-file                → load environment variables
             docker run -d \
               --name societyone-backend \
               --restart unless-stopped \

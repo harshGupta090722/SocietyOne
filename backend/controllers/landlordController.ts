@@ -112,6 +112,7 @@ export const addProperty = async (req: Request, res: Response): Promise<any> => 
         }
 
         let fileUrl = "";
+
         if (req.file) {
             fileUrl = `/uploads/${req.file.filename}`;
         } else if (req.body.documentUrl) {
@@ -155,6 +156,7 @@ export const addProperty = async (req: Request, res: Response): Promise<any> => 
                 type: "ownership",
                 status: "pending"
             });
+
             await verification.save();
         }
 
@@ -335,14 +337,49 @@ export const getProfile = async (req: Request, res: Response): Promise<any> => {
 
 export const getOwnershipRequests = async (req: Request, res: Response): Promise<any> => {
     try {
-        const requests = await Verification.find({ userId: req.userId, type: "ownership" })
+        const verifications = await Verification.find({ userId: req.userId, type: "ownership" })
             .populate("flatId", "flatNo status isApproved monthlyRent securityDeposit")
             .sort({ createdAt: -1 });
+
+        const allRequests: any[] = [];
+        
+        for (const v of verifications) {
+            // Push the current/latest request
+            allRequests.push({
+                _id: v._id,
+                userId: v.userId,
+                flatId: v.flatId,
+                idProofUrl: v.idProofUrl,
+                status: v.status,
+                type: v.type,
+                rejectionReason: v.rejectionReason,
+                createdAt: v.updatedAt || v.createdAt
+            });
+
+            // Push past attempts
+            if (v.attempts && v.attempts.length > 0) {
+                v.attempts.forEach((attempt, index) => {
+                    allRequests.push({
+                        _id: `${v._id}-attempt-${index}`,
+                        userId: v.userId,
+                        flatId: attempt.flatId || v.flatId,
+                        idProofUrl: attempt.idProofUrl,
+                        status: attempt.status,
+                        type: v.type,
+                        rejectionReason: attempt.rejectionReason,
+                        createdAt: attempt.submittedAt
+                    });
+                });
+            }
+        }
+
+        // Sort all requests by date descending
+        allRequests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         return res.status(200).json({
             success: true,
             message: "Ownership requests fetched successfully",
-            requests
+            requests: allRequests
         });
     } catch (error: any) {
         console.error("Error in getOwnershipRequests:", error);

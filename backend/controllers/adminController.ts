@@ -3,7 +3,7 @@ import { Flat } from "../models/flatModel.js";
 import { Lease } from "../models/leaseModel.js";
 import { User } from "../models/userModel.js";
 import { Verification } from "../models/verificaionModel.js";
-import { Document as LeaseDocument } from "../models/documentModel.js";
+
 
 export const getDashboard = async (req: Request, res: Response): Promise<any> => {
     try {
@@ -53,6 +53,7 @@ export const getDocumentVerifications = async (req: Request, res: Response): Pro
             .populate("attempts.flatId", "flatNo status isApproved");
 
         const allRequests: any[] = [];
+        
         for (const v of verifications) {
             // Push the current/latest request
             allRequests.push({
@@ -172,20 +173,31 @@ export const getAllLeases = async (req: Request, res: Response): Promise<any> =>
 
 export const getAllDocuments = async (req: Request, res: Response): Promise<any> => {
     try {
-        const allDocuments = await LeaseDocument.find()
-            .populate({
-                path: "leaseId",
-                populate: {
-                    path: "flatId tenantId landlordId",
-                    select: "flatNo firstName lastName email phone role isVerified"
-                }
-            })
+        // 1. Approved identity verifications
+        const identityDocs = await Verification.find({ type: "identity", status: "approved" })
+            .populate("userId", "firstName lastName email phone role")
+            .sort({ updatedAt: -1 });
+
+        // 2. Approved ownership verifications
+        const ownershipDocs = await Verification.find({ type: "ownership", status: "approved" })
+            .populate("userId", "firstName lastName email phone role")
+            .populate("flatId", "flatNo status")
+            .sort({ updatedAt: -1 });
+
+        // 3. Active leases
+        const activeLeaseDocs = await Lease.find({ status: "active" })
+            .populate("flatId", "flatNo status")
+            .populate("tenantId", "firstName lastName email phone")
+            .populate("landlordId", "firstName lastName email phone")
             .sort({ createdAt: -1 });
 
         return res.status(200).json({
             success: true,
-            allDocuments
+            identityDocs,
+            ownershipDocs,
+            activeLeaseDocs
         });
+
     } catch (error) {
         return res.status(500).json({ success: false, message: "Error in getAllDocuments Admin Controller", error });
     }

@@ -41,9 +41,11 @@ function ResetPassword() {
     try {
       await api.post('/auth/reset-password', { token, newPassword: password });
       setSuccess(true);
+
       setTimeout(() => {
         navigate('/login');
       }, 3000);
+      
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to reset password. The token might be expired.');
     } finally {

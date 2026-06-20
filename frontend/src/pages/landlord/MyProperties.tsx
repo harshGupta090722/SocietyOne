@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api';
 import { getUploadUrl } from '../../utils/fileUrl';
-import { 
-  Building, 
-  Info, 
-  Home, 
+import {
+  Building,
+  Info,
+  Home,
   Loader2,
   FileText,
   History,
@@ -69,12 +69,12 @@ interface PaymentRecord {
   rentMonth?: string;
 }
 
-function PropertyCard({ 
-  property, 
-  openModal, 
-  setLightboxUrl 
-}: { 
-  property: Flat; 
+function PropertyCard({
+  property,
+  openModal,
+  setLightboxUrl
+}: {
+  property: Flat;
   openModal: (flat: Flat, type: 'details' | 'documents' | 'history') => void;
   setLightboxUrl: (url: string) => void;
 }) {
@@ -91,7 +91,7 @@ function PropertyCard({
     e.stopPropagation();
     setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
-  
+
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
@@ -108,13 +108,13 @@ function PropertyCard({
       {/* Image Carousel */}
       {images.length > 0 && (
         <div className="relative h-48 sm:h-56 bg-slate-100 overflow-hidden group/carousel cursor-pointer" onClick={() => setLightboxUrl(images[currentImageIndex].url)}>
-          <img 
-            src={images[currentImageIndex].url} 
-            alt={images[currentImageIndex].label} 
+          <img
+            src={images[currentImageIndex].url}
+            alt={images[currentImageIndex].label}
             className="w-full h-full object-cover transition-transform duration-500 group-hover/carousel:scale-105"
           />
           <div className="absolute inset-0 bg-slate-900/10 transition-colors duration-300" />
-          
+
           <div className="absolute top-3 left-3 bg-slate-900/70 backdrop-blur-sm text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
             {images[currentImageIndex].label}
           </div>
@@ -123,15 +123,15 @@ function PropertyCard({
             {currentImageIndex + 1} / {images.length}
           </div>
 
-          <button 
-            onClick={handlePrev} 
+          <button
+            onClick={handlePrev}
             className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full shadow-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 transform -translate-x-2 group-hover/carousel:translate-x-0"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          
-          <button 
-            onClick={handleNext} 
+
+          <button
+            onClick={handleNext}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full shadow-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 transform translate-x-2 group-hover/carousel:translate-x-0"
           >
             <ChevronRight className="w-5 h-5" />
@@ -146,13 +146,12 @@ function PropertyCard({
               <Home className="w-5 h-5" />
             </div>
             <span
-              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                isPending
-                  ? 'bg-amber-100 text-amber-800'
-                  : isOccupied
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isPending
+                ? 'bg-amber-100 text-amber-800'
+                : isOccupied
                   ? 'bg-emerald-100 text-emerald-800'
                   : 'bg-blue-100 text-blue-800'
-              }`}
+                }`}
             >
               {isPending ? 'Pending Approval' : property.status}
             </span>
@@ -233,7 +232,7 @@ function MyProperties() {
     try {
       setLoading(true);
       setError('');
-      
+
       // 1. Fetch properties
       const propRes = await api.get('/landlord/properties');
       if (propRes.data && propRes.data.flats) {
@@ -330,11 +329,11 @@ function MyProperties() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {properties.map((property) => (
-            <PropertyCard 
-              key={property._id} 
-              property={property} 
-              openModal={openModal} 
-              setLightboxUrl={setLightboxUrl} 
+            <PropertyCard
+              key={property._id}
+              property={property}
+              openModal={openModal}
+              setLightboxUrl={setLightboxUrl}
             />
           ))}
         </div>
@@ -438,7 +437,7 @@ function MyProperties() {
                     <span className="text-slate-600">Verification Status:</span>
                     <span className="font-semibold capitalize text-slate-800">{selectedProperty.isApproved}</span>
                   </div>
-                  
+
                   {selectedProperty.isApproved === 'approved' && (
                     <div className="flex items-center text-xs text-emerald-600 font-semibold gap-1">
                       <CheckCircle className="w-4 h-4" /> Ownership verified by administrator
@@ -521,13 +520,12 @@ function MyProperties() {
                           <td className="p-3 text-slate-500">{new Date(payment.paymentDate).toLocaleDateString()}</td>
                           <td className="p-3">
                             <span
-                              className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                payment.status === 'approved'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : payment.status === 'pending'
+                              className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${payment.status === 'approved'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : payment.status === 'pending'
                                   ? 'bg-amber-100 text-amber-800'
                                   : 'bg-rose-100 text-rose-800'
-                              }`}
+                                }`}
                             >
                               {payment.status}
                             </span>

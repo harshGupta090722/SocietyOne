@@ -41,6 +41,7 @@ interface UserProfile {
 }
 
 function TenantProfile() {
+
   const { isVerified } = useOutletContext<{ isVerified: boolean }>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [verification, setVerification] = useState<any>(null);
@@ -64,7 +65,7 @@ function TenantProfile() {
   const fetchProfile = async () => {
     try {
       const response = await api.get('/tenant/profile'); // Retrieve tenant's own profile and verification details
-      if (response.data && response.data.user) {
+      if (response.data && response.data.user) {useOutletContext
         setProfile(response.data.user);
         if (response.data.verification) {
           setVerification(response.data.verification);

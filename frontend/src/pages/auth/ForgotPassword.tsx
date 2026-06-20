@@ -49,7 +49,7 @@ function ForgotPassword() {
           {success ? (
             <div className="text-center space-y-6">
               <div className="flex justify-center">
-                <CheckCircle2 className="h-16 w-16 text-green-500" />
+                <CheckCircle2 className="h-16 w-17 text-green-500" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-lg font-medium text-slate-900">Check your email</h3>

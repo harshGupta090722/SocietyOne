@@ -24,7 +24,7 @@ import MyLease from './pages/tenant/MyLease';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminFlats from './pages/admin/Flats';
 import AdminVerifications from './pages/admin/Verifications';
-import AdminLeases from './pages/admin/Leases';
+
 import AdminDocuments from './pages/admin/Documents';
 import AdminProfile from './pages/admin/Profile';
 import TenantComplaints from './pages/tenant/Complaints';
@@ -100,7 +100,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="flats" element={<AdminFlats />} />
             <Route path="verifications" element={<AdminVerifications />} />
-            <Route path="leases" element={<AdminLeases />} />
+
             <Route path="complaints" element={<AdminComplaints />} />
             <Route path="documents" element={<AdminDocuments />} />
             <Route path="profile" element={<AdminProfile />} />

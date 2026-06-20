@@ -25,10 +25,12 @@ function TenantDashboard() {
       try {
         const meRes = await api.get('/auth/me');
         if (meRes.data && meRes.data.user) {
+
           if (!meRes.data.user.isVerified) {
             navigate('/tenant/profile');
             return;
           }
+          
         }
 
         const response = await api.get('/tenant/dashboard');

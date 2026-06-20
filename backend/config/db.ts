@@ -9,6 +9,7 @@ const connectDB = async (): Promise<void> => {
         // Programmatically drop legacy unique index userId_1 on verifications
         try {
             const db = mongoose.connection.db;
+            
             if (db) {
                 await db.collection("verifications").dropIndex("userId_1");
                 console.log("Successfully dropped duplicate unique index userId_1 on verifications");

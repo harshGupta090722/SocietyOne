@@ -1,36 +1,25 @@
-Here is a consolidated, clean checklist of all the production-ready improvements we discussed to take Tenantly to the next level.
+Future Improvements:
 
-Security & Authentication
+1)Now tenant can only send one request for a flat lease-so he can't even explore other options for flats-what if landlord of the requested flat doesn't revert back etc.
+So,tenant can offer to rent a flat along sending with all his details and all. If landlord accepts that requests-then tenant is eligible to pay.Once tenant pays-the flat becomes occupied and all the other offers automatically gets cancelled.
 
-PostgreSQL Migration: Move from MongoDB to PostgreSQL. Utilize foreign key constraints (ON DELETE RESTRICT) to prevent accidental deletion of properties with active leases, and implement UUIDs instead of sequential IDs to prevent URL scraping.
-Invisible CAPTCHA: Integrate Cloudflare Turnstile or Google reCAPTCHA v3 into login and registration forms to stop bot spam without disrupting the user experience.
-Cryptographic Password Reset: Build a secure "Forgot Password" system that generates cryptographically secure random tokens, hashes them (SHA-256) before storing them in a password_resets table, and enforces a strict 15-minute expiration window.
-Role-Based Access Control (RBAC): Implement strict backend middleware using JWT or session cookies to completely isolate Admin, Landlord, and Tenant endpoints.
+5)Swiggy,zomato ,ola ,uber delivery partner approval directly with a QR code generated that is valid till the time order is placed and is cancelled as it's removed.
 
-AI & Document Verification
+Package->Gate Box-Suppose a package need to be deliverd in few days or due to some reason ,tenant can tell the admin in advance about it. So they can keep it,click and send the photo of the package.
 
-Asynchronous AI OCR Pipeline: Use AWS Textract or Google Cloud Vision API to programmatically extract text from uploaded IDs or lease agreements in a background worker (e.g., BullMQ or Celery).
-Fuzzy Name Matching: Use string-similarity algorithms in the backend to cross-reference the name extracted by the AI against the user's registered name, presenting a "Match Confidence %" to the Admin.
-Secure Document Vault: Store sensitive identity documents in private AWS S3 buckets and render them securely on the frontend using short-lived, temporary Presigned URLs.
-Government Sandbox Alternative (Optional): Integrate a sandboxed OAuth 2.0 flow simulating DigiLocker or a KYC API provider to fetch pre-verified user credentials via backend webhooks.
 
-Automated Financials & Billing
+6)Amenities Booking-Each member gets weekly,monthly token -which they can use to enjoy aminites.
 
-Payment Gateway Sandbox: Integrate a simulated checkout flow using Stripe or Razorpay so tenants can pay rent digitally instead of relying solely on manual screenshots.
-Automated Cron Jobs: Set up an automated background task that executes on the 1st of every month to loop through occupied apartments, generate rent invoices, email PDFs via SendGrid, and update the payment status to "Unpaid".
-File Type Validation: For cash/wire manual screenshot backups, implement server-side file-type validation to ensure uploaded files are genuine images/PDFs and not empty dummy files.
+7)Create a Digital Lease-Integrate a chatBot that would answer all the related questions.
 
-DevOps, Reliability, & Professional UX
+8)Later owners can themselves add images while add property from their own portal which will be added in the database.
 
-CI/CD Pipeline: Build a GitHub Actions workflow that runs your tests automatically on every code push and deploys the application inside Docker containers to platforms like Render, AWS, or Railway.
-Automated Audit Logging: Create an unalterable database log table that records a permanent audit trail of crucial actions (e.g., "Admin [ID] approved Landlord [ID] claim on Flat [ID] at [Timestamp]").
-Real-Time Notifications: Integrate WebSockets (Socket.io) to send instant alerts when a lease is approved or a payment is rejected, removing the need for page refreshes.
-Data Analytics Dashboards: Add charting libraries (like Recharts) to the Landlord dashboard to visually track monthly income trends and occupancy rates.
+9)Landlor may own and live on their own flat.
 
+10)When user signs up on the platform-they would also need to verify their email.
 
 
 
 
 Permanent Static IP
-
 52.4.193.16

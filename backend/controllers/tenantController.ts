@@ -3,7 +3,7 @@ import { User } from "../models/userModel.js";
 import { Flat } from "../models/flatModel.js";
 import { Payment } from "../models/paymentModel.js";
 import { Lease } from "../models/leaseModel.js";
-import { Document } from "../models/documentModel.js";
+
 import { Verification } from "../models/verificaionModel.js";
 
 export const getDashboard = async (req: Request, res: Response): Promise<any> => {
@@ -39,7 +39,6 @@ export const getDashboard = async (req: Request, res: Response): Promise<any> =>
         const status = flat.status;
 
         let leaseDetails = activeLease;
-        let documentDetails = await Document.findOne({ leaseId: activeLease._id });
         let payments: any[] = await Payment.find({ leaseId: activeLease._id }).sort({ paymentDate: -1 });
         let outstandingDue = 0;
 
@@ -69,7 +68,7 @@ export const getDashboard = async (req: Request, res: Response): Promise<any> =>
             flatNo,
             flatStatus: status,
             lease: leaseDetails,
-            documents: documentDetails,
+
             payments,
             outstandingDue
         });

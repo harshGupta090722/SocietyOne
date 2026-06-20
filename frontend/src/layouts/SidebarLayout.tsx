@@ -98,7 +98,7 @@ function SidebarLayout() {
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'AllFlats', path: '/admin/flats', icon: Home },
     { name: 'Document Verification', path: '/admin/verifications', icon: CheckSquare },
-    { name: 'Leases', path: '/admin/leases', icon: Users },
+
     { name: 'Complaints', path: '/admin/complaints', icon: MessageSquareWarning },
     { name: 'All Document', path: '/admin/documents', icon: FolderOpen },
     { name: 'Profile Settings', path: '/admin/profile', icon: Settings },

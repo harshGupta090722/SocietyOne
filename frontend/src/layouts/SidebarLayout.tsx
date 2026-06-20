@@ -16,7 +16,8 @@ import {
   AlertCircle,
   MessageSquareWarning,
   Bell,
-  ShieldAlert
+  ShieldAlert,
+  Package
 } from 'lucide-react';
 import api from '../api';
 
@@ -79,6 +80,7 @@ function SidebarLayout() {
     { name: 'Tenants', path: '/landlord/tenants', icon: Users },
     { name: 'Payments', path: '/landlord/payments', icon: CreditCard },
     { name: 'Complaints', path: '/landlord/complaints', icon: MessageSquareWarning },
+    { name: 'My Parcels', path: '/landlord/parcels', icon: Package },
     { name: 'Notifications', path: '/landlord/notifications', icon: Bell },
     { name: 'Documents', path: '/landlord/documents', icon: FolderOpen },
     { name: 'Profile', path: '/landlord/profile', icon: Settings }
@@ -90,6 +92,7 @@ function SidebarLayout() {
     { name: 'My Lease', path: '/tenant/my-lease', icon: Key },
     { name: 'Payments', path: '/tenant/payments', icon: CreditCard },
     { name: 'Complaints', path: '/tenant/complaints', icon: MessageSquareWarning },
+    { name: 'My Parcels', path: '/tenant/parcels', icon: Package },
     { name: 'Notifications', path: '/tenant/notifications', icon: Bell },
     { name: 'Profile', path: '/tenant/profile', icon: Settings },
   ];
@@ -100,6 +103,7 @@ function SidebarLayout() {
     { name: 'Document Verification', path: '/admin/verifications', icon: CheckSquare },
 
     { name: 'Complaints', path: '/admin/complaints', icon: MessageSquareWarning },
+    { name: 'Gate Parcels', path: '/admin/parcels', icon: Package },
     { name: 'All Document', path: '/admin/documents', icon: FolderOpen },
     { name: 'Profile Settings', path: '/admin/profile', icon: Settings },
   ];

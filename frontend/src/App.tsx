@@ -26,11 +26,13 @@ import AdminFlats from './pages/admin/Flats';
 import AdminVerifications from './pages/admin/Verifications';
 
 import AdminDocuments from './pages/admin/Documents';
+import AdminParcels from './pages/admin/Parcels';
 import AdminProfile from './pages/admin/Profile';
 import TenantComplaints from './pages/tenant/Complaints';
 import LandlordComplaints from './pages/landlord/Complaints';
 import AdminComplaints from './pages/admin/Complaints';
 import Notifications from './pages/shared/Notifications';
+import MyParcels from './pages/shared/MyParcels';
 import './index.css';
 
 function App() {
@@ -64,6 +66,7 @@ function App() {
             <Route path="complaints" element={<LandlordComplaints />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="documents" element={<LandlordDocuments />} />
+            <Route path="parcels" element={<MyParcels />} />
             <Route path="profile" element={<LandlordProfile />} />
           </Route>
 
@@ -81,6 +84,7 @@ function App() {
             <Route path="my-lease" element={<MyLease />} />
             <Route path="payments" element={<TenantPayments />} />
             <Route path="complaints" element={<TenantComplaints />} />
+            <Route path="parcels" element={<MyParcels />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<TenantProfile />} />
             
@@ -103,6 +107,7 @@ function App() {
 
             <Route path="complaints" element={<AdminComplaints />} />
             <Route path="documents" element={<AdminDocuments />} />
+            <Route path="parcels" element={<AdminParcels />} />
             <Route path="profile" element={<AdminProfile />} />
           </Route>
         </Routes>

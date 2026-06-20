@@ -34,4 +34,3 @@ We can add this thing in our backend-aws.yaml also to automate this.
 The Concept: You must configure your hosting provider to redirect all incoming traffic back to index.html. Once the browser loads index.html, React Router wakes up, reads the URL, and displays the correct page.
 
 The Fix (on Vercel): Add a vercel.json file to your frontend folder with a catch-all rewrite rule: "source": "/(.*)", "destination": "/index.html". This forces Vercel to always serve your React app no matter what URL the user types in.
-

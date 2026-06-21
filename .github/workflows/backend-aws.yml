@@ -41,12 +41,13 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          envs: MONGO_URL,LANDLORD_SECRET_KEY,TENANT_SECRET_KEY,ADMIN_SECRET_KEY,SMTP_USER,SMTP_PASS,FRONTEND_URL
+          envs: MONGO_URL,LANDLORD_SECRET_KEY,TENANT_SECRET_KEY,ADMIN_SECRET_KEY,SMTP_USER,SMTP_PASS,FRONTEND_URL,WEBHOOK_SECRET
           script: |
             cd ~/SocietyOne
             git pull origin main
@@ -64,6 +65,7 @@ jobs:
             echo "SMTP_USER=$SMTP_USER" >> .env
             echo "SMTP_PASS=$SMTP_PASS" >> .env
             echo "FRONTEND_URL=$FRONTEND_URL" >> .env
+            echo "WEBHOOK_SECRET=$WEBHOOK_SECRET" >> .env
 
             # Build and restart Docker container
             docker build -t societyone-backend .

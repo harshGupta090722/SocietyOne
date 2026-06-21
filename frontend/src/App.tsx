@@ -28,6 +28,7 @@ import AdminVerifications from './pages/admin/Verifications';
 import AdminDocuments from './pages/admin/Documents';
 import AdminParcels from './pages/admin/Parcels';
 import AdminProfile from './pages/admin/Profile';
+import GateVerification from './pages/admin/GateVerification';
 import TenantComplaints from './pages/tenant/Complaints';
 import LandlordComplaints from './pages/landlord/Complaints';
 import AdminComplaints from './pages/admin/Complaints';
@@ -108,6 +109,7 @@ function App() {
             <Route path="complaints" element={<AdminComplaints />} />
             <Route path="documents" element={<AdminDocuments />} />
             <Route path="parcels" element={<AdminParcels />} />
+            <Route path="gate-verification" element={<GateVerification />} />
             <Route path="profile" element={<AdminProfile />} />
           </Route>
         </Routes>

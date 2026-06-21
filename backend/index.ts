@@ -9,6 +9,8 @@ import leaseRouter from "./routes/leaseRoute.js";
 import adminRouter from "./routes/adminRoutes.js";
 import complaintRouter from "./routes/complaintRoute.js";
 import parcelRouter from "./routes/parcelRoute.js";
+import webhookRouter from "./routes/webhookRoute.js";
+import deliveryRouter from "./routes/deliveryRoute.js";
 import cors from "cors";
 
 connectDB();
@@ -32,6 +34,8 @@ app.use("/api/v1/leases", leaseRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/complaints", complaintRouter);
 app.use("/api/v1/parcels", parcelRouter);
+app.use("/api/v1/deliveries", deliveryRouter);
+app.use("/api/webhooks", webhookRouter);
 app.use("/uploads", express.static("uploads"));
 
 app.listen(PORT, () => {

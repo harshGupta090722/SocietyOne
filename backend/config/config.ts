@@ -13,6 +13,7 @@ interface Config {
     SMTP_USER: string;
     SMTP_PASS: string;
     FRONTEND_URL: string;
+    WEBHOOK_SECRET: string;
 }
 
 const config: Config = {
@@ -26,6 +27,7 @@ const config: Config = {
     SMTP_USER: process.env.SMTP_USER || "",
     SMTP_PASS: process.env.SMTP_PASS || "",
     FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET || "",
 };
 
 export default config;

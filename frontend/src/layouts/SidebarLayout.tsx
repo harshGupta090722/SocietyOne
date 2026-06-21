@@ -17,7 +17,8 @@ import {
   MessageSquareWarning,
   Bell,
   ShieldAlert,
-  Package
+  Package,
+  ShieldCheck
 } from 'lucide-react';
 import api from '../api';
 
@@ -104,6 +105,7 @@ function SidebarLayout() {
 
     { name: 'Complaints', path: '/admin/complaints', icon: MessageSquareWarning },
     { name: 'Gate Parcels', path: '/admin/parcels', icon: Package },
+    { name: 'Gate Verification', path: '/admin/gate-verification', icon: ShieldCheck },
     { name: 'All Document', path: '/admin/documents', icon: FolderOpen },
     { name: 'Profile Settings', path: '/admin/profile', icon: Settings },
   ];

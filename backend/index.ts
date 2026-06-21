@@ -38,6 +38,6 @@ app.use("/api/v1/deliveries", deliveryRouter);
 app.use("/api/webhooks", webhookRouter);
 app.use("/uploads", express.static("uploads"));
 
-app.listen(PORT, () => {
+app.listen( PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
